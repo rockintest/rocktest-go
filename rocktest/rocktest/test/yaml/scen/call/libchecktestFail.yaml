@@ -1,0 +1,5 @@
+# Fails, because a mandatory param is missing
+- step: call
+  value: module/libCheck
+  params:
+    mandatory2: val2

@@ -24,20 +24,13 @@ func (module *Module) Call(params map[string]interface{}, scenario *Scenario) er
 		val = val + ".yaml"
 	}
 
-	contextStr, err := scenario.GetString(paramsEx, "context", nil)
+	context, err := scenario.GetList(paramsEx, "context", nil)
 	if err == nil {
-		// We have something like context: XXX in the params
-		if contextStr == "all" {
+		if context[0] == "all" {
 			calledScenario.CopyVariables(scenario)
 		} else {
-			calledScenario.CopyVariable(contextStr, scenario)
-		}
-	} else {
-		// Check if we have a list in context param
-		contextList, err := scenario.GetList(paramsEx, "context", nil)
-		if err == nil {
-			for _, v := range contextList {
-				calledScenario.CopyVariable(fmt.Sprintf("%v", v), scenario)
+			for _, v := range context {
+				calledScenario.CopyVariable(fmt.Sprint(v), scenario)
 			}
 		}
 	}
@@ -45,7 +38,6 @@ func (module *Module) Call(params map[string]interface{}, scenario *Scenario) er
 	calledScenario.AddVariables(paramsEx)
 
 	err = calledScenario.RunFromRoot(val)
-
 	if err != nil {
 		return err
 	}

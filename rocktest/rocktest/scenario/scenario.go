@@ -175,14 +175,15 @@ func (s *Scenario) Run(scen string) error {
 
 func (s *Scenario) PutContext(name string, value interface{}) error {
 
-	log.Debugf("Set %s: %s = %v", s.Context["module"], name, value)
-
 	switch str := value.(type) {
 	case string:
 		s.Context[name] = str
+		log.Debugf("Set %s: %s = %v", s.Context["module"], name, value)
 	case int:
 		s.Context[name] = fmt.Sprint(str)
+		log.Debugf("Set %s: %s = %v", s.Context["module"], name, value)
 	default:
+		log.Debugf("NotSet %s: %s = %v (type must be string or int, not %T)", s.Context["module"], name, value, value)
 		return fmt.Errorf("variable value type must be string or int, not %T", value)
 	}
 
@@ -193,10 +194,7 @@ func (s *Scenario) AddVariables(params map[string]interface{}) error {
 
 	for k, v := range params {
 
-		err := s.PutContext(k, v)
-		if err != nil {
-			return err
-		}
+		s.PutContext(k, v)
 
 	}
 
@@ -225,11 +223,7 @@ func (s *Scenario) CopyVariables(source *Scenario) error {
 			continue
 		}
 
-		err := s.PutContext(k, v)
-		if err != nil {
-			return err
-		}
-
+		s.PutContext(k, v)
 	}
 
 	return nil
@@ -291,6 +285,25 @@ func (s *Scenario) GetString(params map[string]interface{}, key string, def inte
 
 }
 
+func asList(def interface{}) ([]interface{}, error) {
+	switch defcast := def.(type) {
+	case []interface{}:
+		return defcast, nil
+	case []string:
+		ret := make([]interface{}, len(defcast))
+		for i, v := range defcast {
+			ret[i] = v
+		}
+		return ret, nil
+	case string:
+		return []interface{}{defcast}, nil
+	case int:
+		return []interface{}{fmt.Sprint(defcast)}, nil
+	default:
+		return nil, fmt.Errorf("bad type for default value. Must be a string, int, []interface{} or []string, not %T", defcast)
+	}
+}
+
 // Get a parameter as list. Returns the default value if not found.
 // If the value is not found, and there is no default value, returns an error.
 // If the value is not a list, return an error
@@ -300,7 +313,7 @@ func (s *Scenario) GetList(params map[string]interface{}, key string, def interf
 		if def == nil {
 			return nil, errors.New("Params map empty, and no default value provided for key " + key)
 		} else {
-			return def.([]interface{}), nil // List of the builtin variable
+			return asList(def)
 		}
 	}
 
@@ -310,6 +323,10 @@ func (s *Scenario) GetList(params map[string]interface{}, key string, def interf
 		switch ret := ret.(type) {
 		case []interface{}:
 			return ret, nil
+		case string:
+			return []interface{}{ret}, nil
+		case int:
+			return []interface{}{fmt.Sprint(ret)}, nil
 		default:
 			msg := fmt.Sprintf("Bad type for value %s. Must be a list, not %v", key, reflect.TypeOf(ret))
 			return nil, errors.New(msg)
@@ -319,13 +336,7 @@ func (s *Scenario) GetList(params map[string]interface{}, key string, def interf
 		if def == nil {
 			return nil, errors.New("Value not found for " + key)
 		} else {
-			switch ret := def.(type) {
-			case []interface{}:
-				return ret, nil
-			default:
-				msg := fmt.Sprintf("Bad type for default value for %s. Must be a list, not %v", key, reflect.TypeOf(ret))
-				return nil, errors.New(msg)
-			}
+			return asList(def)
 		}
 	}
 

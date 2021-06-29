@@ -181,7 +181,119 @@ func TestGetList5(t *testing.T) {
 
 	if err == nil {
 		t.Errorf("Should return an error")
+	} else {
+		t.Logf("Error returned: %s", err.Error())
+	}
+}
+
+//----
+
+func TestGetList6(t *testing.T) {
+	m := make(map[string]interface{})
+	m["rock"] = []interface{}{"Mick", "Jagger"}
+
+	def := []string{"Bruce", "Springsteen"}
+
+	s := scenario.NewScenario()
+
+	str, err := s.GetList(m, "test", def)
+
+	if str[1] != "Springsteen" {
+		t.Errorf("Bad result. Expected %s but was %s", "Springsteen", str)
 	}
 
-	t.Logf("Error returned: %s", err.Error())
+	if err != nil {
+		t.Errorf("Should not return en error: %s", err.Error())
+	}
+}
+
+func TestGetList7(t *testing.T) {
+
+	def := []string{"Bruce", "Springsteen"}
+
+	s := scenario.NewScenario()
+
+	str, err := s.GetList(nil, "test", def)
+
+	if str[0] != "Bruce" {
+		t.Errorf("Bad result. Expected %s but was %s", "Bruce", str)
+	}
+
+	if err != nil {
+		t.Errorf("Should not return an error: %s", err.Error())
+	}
+
+}
+
+func TestGetList8(t *testing.T) {
+	m := make(map[string]interface{})
+	m["rock"] = []interface{}{"Mick", "Jagger"}
+
+	def := "Springsteen"
+
+	s := scenario.NewScenario()
+
+	str, err := s.GetList(m, "test", def)
+
+	if str[0] != "Springsteen" {
+		t.Errorf("Bad result. Expected %s but was %s", "Springsteen", str)
+	}
+
+	if err != nil {
+		t.Errorf("Should not return en error: %s", err.Error())
+	}
+}
+
+func TestGetList9(t *testing.T) {
+
+	def := "Bruce"
+
+	s := scenario.NewScenario()
+
+	str, err := s.GetList(nil, "test", def)
+
+	if str[0] != "Bruce" {
+		t.Errorf("Bad result. Expected %s but was %s", "Bruce", str)
+	}
+
+	if err != nil {
+		t.Errorf("Should not return an error: %s", err.Error())
+	}
+
+}
+
+func TestGetList10(t *testing.T) {
+	m := make(map[string]interface{})
+	m["rock"] = []interface{}{"Mick", "Jagger"}
+
+	def := 100
+
+	s := scenario.NewScenario()
+
+	str, err := s.GetList(m, "test", def)
+
+	if str[0] != "100" {
+		t.Errorf("Bad result. Expected %d but was %s", 100, str[0])
+	}
+
+	if err != nil {
+		t.Errorf("Should not return en error: %s", err.Error())
+	}
+}
+
+func TestGetList11(t *testing.T) {
+	m := make(map[string]interface{})
+	m["rock"] = "Jagger"
+
+	s := scenario.NewScenario()
+
+	str, err := s.GetList(m, "rock", nil)
+
+	if str[0] != "Jagger" {
+		t.Errorf("Bad result. Expected %s but was %s", "Jagger", str)
+	}
+
+	if err != nil {
+		t.Errorf("Should not return en error: %s", err.Error())
+	}
 }

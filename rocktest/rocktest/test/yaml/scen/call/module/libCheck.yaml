@@ -1,0 +1,24 @@
+- check.params:
+  params :
+    mandatory :
+      - mandatory1
+      - mandatory2
+
+- display: mandatory1 = ${mandatory1}; mandatory2 = ${mandatory2}
+
+- display: optional1 = ${optional1::not passed}
+
+- assert.equals:
+  params:
+    expected: val1
+    actual: ${mandatory1}
+
+- assert.equals:
+  params:
+    expected: val2
+    actual: ${mandatory2}
+
+- assert.equals:
+  params:
+    expected: ${optional1.expect}
+    actual: ${optional1::unset}

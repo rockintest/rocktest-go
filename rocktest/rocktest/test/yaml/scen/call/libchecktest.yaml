@@ -1,0 +1,12 @@
+- call: module/libCheck
+  params:
+    mandatory1: val1
+    mandatory2: val2
+    optional1: val3
+    optional1.expect: val3
+
+- call: module/libCheck
+  params:
+    mandatory1: val1
+    mandatory2: val2
+    optional1.expect: unset

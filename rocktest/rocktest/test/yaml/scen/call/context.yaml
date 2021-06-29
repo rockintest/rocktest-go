@@ -43,7 +43,6 @@
     expect.fromContext2: Jagger
     expect.fromParams: E Street Band
 
-- resume:
 - call: module/libcontext
   desc: Partial context
   params:
@@ -54,5 +53,5 @@
     expect.fromContext2: Jagger
     expect.fromParams: E Street Band
 
-
-- --call: module/sublibcontext
+- resume:
+- call: module/sublibcontext

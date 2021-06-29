@@ -1,15 +1,9 @@
-#GO
-- step: var
-  name: fromContext1
-  value: Mick
+- var: fromContext1 = Mick
 
-- step: var
-  name: fromContext2
-  value: Jagger
+- var: fromContext2 = Jagger
 
-- step: call
+- call: module/libcontext
   desc: No context
-  value: module/libcontext
   params:
     fromContext1: Bruce
     fromContext2: Springsteen
@@ -18,9 +12,8 @@
     expect.fromContext2: Springsteen
     expect.fromParams: E Street Band
 
-- step: call
+- call: module/libcontext
   desc: Var in param
-  value: module/libcontext
   params:
     fromContext1: Bruce
     fromContext2: Springsteen
@@ -29,9 +22,8 @@
     expect.fromContext2: Springsteen
     expect.fromParams: Mick
 
-- step: call
+- call: module/libcontext
   desc: All context
-  value: module/libcontext
   params:
     context: all
     fromParams: E Street Band
@@ -39,9 +31,8 @@
     expect.fromContext2: Jagger
     expect.fromParams: E Street Band
 
-- step: call
+- call: module/libcontext
   desc: All context with replacement in call
-  value: module/libcontext
   params:
     context: all
     fromContext1: Bruce
@@ -50,9 +41,8 @@
     expect.fromContext2: Jagger
     expect.fromParams: E Street Band
 
-- step: call
+- call: module/libcontext
   desc: Partial context
-  value: module/libcontext
   params:
     context:
       - fromContext2
