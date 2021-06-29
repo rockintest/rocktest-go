@@ -30,6 +30,7 @@ func NewStep(n map[string]interface{}, s *Scenario) *Step {
 	ret.scenario = s
 
 	var val interface{}
+	var as string
 
 	for k, v := range n {
 
@@ -40,6 +41,8 @@ func NewStep(n map[string]interface{}, s *Scenario) *Step {
 			ret.Desc = fmt.Sprintf("%v", v)
 		case "params":
 			ret.Params = nodeToMap(v)
+		case "as":
+			as = fmt.Sprint(v)
 		default:
 			ret.Type = strings.Title(strings.ReplaceAll(k, ".", "_"))
 			val = v
@@ -57,6 +60,10 @@ func NewStep(n map[string]interface{}, s *Scenario) *Step {
 
 	if val != nil {
 		ret.Params["value"] = val
+	}
+
+	if as != "" {
+		ret.Params["as"] = as
 	}
 
 	return ret

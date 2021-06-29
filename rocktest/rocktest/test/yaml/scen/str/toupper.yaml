@@ -1,0 +1,24 @@
+- toupper: rock
+
+- assert.equals:
+  params:
+    expected: ROCK
+    actual: ${toupper.result}
+
+- assert.equals:
+  params:
+    expected: ROCK
+    actual: ${$$$$}
+
+- toupper: test
+  as: t
+
+- assert.equals:
+  params:
+    expected: TEST
+    actual: ${t}
+
+- assert.equals:
+  params:
+    expected: TEST
+    actual: ${$$$$}

@@ -1,0 +1,26 @@
+- tolower: RocK
+
+- assert.equals:
+  params:
+    expected: rock
+    actual: ${tolower.result}
+
+- assert.equals:
+  params:
+    expected: rock
+    actual: ${$$$$}
+
+- dump:
+
+- tolower: tESt 
+  as: t
+
+- assert.equals:
+  params:
+    expected: test
+    actual: ${t}
+
+- assert.equals:
+  params:
+    expected: test
+    actual: ${$$$$}
