@@ -56,7 +56,7 @@ func NewStep(n map[string]interface{}, s *Scenario) *Step {
 	}
 
 	if val != nil {
-		ret.Params["value"] = ret.Value
+		ret.Params["value"] = val
 	}
 
 	return ret

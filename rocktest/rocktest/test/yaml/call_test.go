@@ -23,3 +23,11 @@ func TestCall4(t *testing.T) {
 func TestCall5(t *testing.T) {
 	shouldPass(t, "call/context.yaml")
 }
+
+func TestCall6(t *testing.T) {
+	shouldPass(t, "call/libchecktest.yaml")
+}
+
+func TestCall7(t *testing.T) {
+	shouldFail(t, "call/libchecktestFail.yaml")
+}

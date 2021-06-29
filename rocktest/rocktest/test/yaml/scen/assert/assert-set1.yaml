@@ -1,0 +1,12 @@
+- var: rock = test
+
+- assert.set:
+  - rock
+
+- assert.set:
+  desc: You can also add a description, but you need to use a more verbose syntax
+  params:
+    value:
+      - rock
+
+- assert.set:

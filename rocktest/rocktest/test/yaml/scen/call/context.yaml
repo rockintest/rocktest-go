@@ -2,8 +2,6 @@
 
 - var: fromContext2 = Jagger
 
-- skip:
-
 - call: module/libcontext
   desc: No context
   params:
@@ -53,5 +51,4 @@
     expect.fromContext2: Jagger
     expect.fromParams: E Street Band
 
-- resume:
 - call: module/sublibcontext

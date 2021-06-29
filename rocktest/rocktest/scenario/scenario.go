@@ -229,20 +229,46 @@ func (s *Scenario) CopyVariables(source *Scenario) error {
 	return nil
 }
 
+// Replace the values of the variables in a list
+func (s *Scenario) ExpandList(params []interface{}) []interface{} {
+
+	ret := make([]interface{}, len(params))
+
+	for i, v := range params {
+		ret[i] = s.Expand(v)
+	}
+
+	return ret
+}
+
+// Replace the values
+func (s *Scenario) Expand(params interface{}) interface{} {
+
+	switch paramCast := params.(type) {
+	case string:
+		return s.ExpandString(paramCast)
+	case []interface{}:
+		return s.ExpandList(paramCast)
+	case map[string]interface{}:
+		return s.ExpandMap(paramCast)
+	default:
+		return params
+	}
+
+}
+
+// Replace the value of the variable
+func (s *Scenario) ExpandString(param string) string {
+	return s.Subst.Replace(param)
+}
+
 // Replace the values of the variables in a map
 func (s *Scenario) ExpandMap(params map[string]interface{}) map[string]interface{} {
 
 	ret := make(map[string]interface{})
 
 	for k, v := range params {
-
-		switch v.(type) {
-		case string:
-			ret[k] = s.Subst.Replace(params[k].(string))
-		default:
-			ret[k] = params[k]
-		}
-
+		ret[k] = s.Expand(v)
 	}
 
 	return ret

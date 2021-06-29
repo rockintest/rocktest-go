@@ -85,3 +85,26 @@ func (module *Module) Assert_fail(params map[string]interface{}, scenario *Scena
 	return errors.New(ret)
 
 }
+
+func (module *Module) Assert_set(params map[string]interface{}, scenario *Scenario) error {
+	paramsEx := scenario.ExpandMap(params)
+
+	ret, err := scenario.GetList(paramsEx, "value", "")
+	if err != nil {
+		return err
+	}
+
+	for _, v := range ret {
+		str := fmt.Sprint(v)
+
+		if str != "" {
+			_, found := scenario.Context[str]
+			if !found {
+				return fmt.Errorf("parameter %s is mandatory", str)
+			}
+
+		}
+	}
+
+	return nil
+}

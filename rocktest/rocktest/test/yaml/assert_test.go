@@ -31,3 +31,11 @@ func TestAssert6(t *testing.T) {
 func TestAssert7(t *testing.T) {
 	shouldFail(t, "assert/assert-regex-fail.yaml")
 }
+
+func TestAssert8(t *testing.T) {
+	shouldPass(t, "assert/assert-set1.yaml")
+}
+
+func TestAssert9(t *testing.T) {
+	shouldFail(t, "assert/assert-set2.yaml")
+}

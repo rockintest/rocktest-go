@@ -1,8 +1,6 @@
-- check.params:
-  params :
-    mandatory :
-      - mandatory1
-      - mandatory2
+- assert.set:
+  - mandatory1
+  - mandatory2
 
 - display: mandatory1 = ${mandatory1}; mandatory2 = ${mandatory2}
 
