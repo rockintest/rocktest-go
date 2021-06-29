@@ -1,0 +1,15 @@
+- var: localvar = localvalue
+
+- display: 'Should be localvalue : ${localvar}'
+
+- var: localvar2 = localvalue2
+
+- assert.equals:
+  params:
+    expected: localvalue
+    actual: ${localvar}
+
+- assert.equals:
+  params:
+    expected: localvalue2
+    actual: ${localvar2}

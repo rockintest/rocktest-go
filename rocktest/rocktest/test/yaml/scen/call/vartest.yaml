@@ -1,0 +1,42 @@
+- var: myvar = myvalue
+
+- var: myvar2 = myvalue2
+
+- display: Variable = ${myvar}
+
+- display: Variable = ${myvar2}
+
+- assert.equals:
+  params:
+    expected: myvalue
+    actual: ${myvar}
+
+- assert.equals:
+  params:
+    expected: myvalue myvalue2
+    actual: ${myvar} ${myvar2}
+
+- var: localvar = localvalueTop
+
+- display: 'should not be replaced : "${noexist}"'
+
+- assert.equals:
+  params:
+    expected: $${noexist}
+    actual: ${noexist}
+
+- call: module/libWithVar
+
+- display: 'Should be localvalueTop : "${localvar}"'
+
+- assert.equals:
+  params:
+    expected: localvalueTop
+    actual: ${localvar}
+
+- display: 'should not be replaced : "${localvar2}"'
+
+- assert.equals:
+  params:
+    expected: $${localvar2}
+    actual: ${localvar2}

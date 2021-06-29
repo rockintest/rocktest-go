@@ -1,0 +1,10 @@
+- display: Hello Rocktest
+
+- exit:
+
+- assert.equals:
+  params:
+    expected: abc
+    actual: def
+    message: I should not be raised, because I am after an exit
+    

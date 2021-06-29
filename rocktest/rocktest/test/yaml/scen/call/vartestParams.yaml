@@ -1,0 +1,7 @@
+- var: localvar = localvalueTop
+
+- call: module/libWithParams
+  params:
+    param1: value1
+    param2: value2
+    param3: ${localvar}

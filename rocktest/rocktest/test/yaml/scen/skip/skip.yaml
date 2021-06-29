@@ -1,0 +1,15 @@
+- display: You can see me
+
+- skip:
+
+- assert.fail: I should not be here
+
+- resume:
+
+- display: You can see me again !
+
+- --display: You should not see me
+
+- --assert.fail: I should not be raised
+
+- assert.fail: I feel good

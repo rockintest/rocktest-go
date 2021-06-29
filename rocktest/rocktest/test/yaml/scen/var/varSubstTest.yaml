@@ -1,0 +1,71 @@
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${notexist::unset}
+
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${notexist?set::unset}
+
+- var: exist = I am alive
+
+- assert.equals:
+  params:
+    expected: set
+    actual: ${exist?set::unset}
+
+- display: 'should be "default value" : ${notexist?${notexist}::default value}'
+
+- assert.equals:
+  params:
+    expected: default value
+    actual: ${notexist?${notexist}::default value}
+
+
+- display: 'should be "I am alive" : ${exist?${exist}::default value}'
+
+- assert.equals:
+  params:
+    expected: I am alive
+    actual: ${exist?${exist}::default value}
+
+- display: 'should be "Yes ! I am alive and kicking" : ${exist?Yes ! ${exist} and kicking::default value}'
+
+- assert.equals:
+  params:
+    expected: Yes ! I am alive and kicking
+    actual: ${exist?Yes ! ${exist} and kicking::default value}
+
+- assert.equals:
+  params:
+    expected: default value
+    actual: ${notexist::default value}
+
+- assert.equals:
+  params:
+    expected: I am alive
+    actual: ${notexist::${exist}}
+
+- assert.equals:
+  params:
+    expected: 1
+    actual: ${notexist?${notexist}::1}
+
+- assert.equals:
+  params:
+    expected: 1
+    actual: ${notexist::1}
+
+- var: id = 10
+
+- assert.equals:
+  params:
+    expected: 10
+    actual: ${id?${id}::99}
+
+- assert.equals:
+  params:
+    expected: 10
+    actual: ${id::99}
+

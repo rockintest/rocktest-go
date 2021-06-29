@@ -1,0 +1,6 @@
+- assert.equals:
+  desc: Assert that fails
+  params:
+    expected: abc
+    actual: def
+    message: 'Fail but OK :)'

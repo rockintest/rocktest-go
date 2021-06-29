@@ -1,0 +1,58 @@
+- var: fromContext1 = Mick
+
+- var: fromContext2 = Jagger
+
+- skip:
+
+- call: module/libcontext
+  desc: No context
+  params:
+    fromContext1: Bruce
+    fromContext2: Springsteen
+    fromParams: E Street Band
+    expect.fromContext1: Bruce
+    expect.fromContext2: Springsteen
+    expect.fromParams: E Street Band
+
+- call: module/libcontext
+  desc: Var in param
+  params:
+    fromContext1: Bruce
+    fromContext2: Springsteen
+    fromParams: ${fromContext1}
+    expect.fromContext1: Bruce
+    expect.fromContext2: Springsteen
+    expect.fromParams: Mick
+
+- call: module/libcontext
+  desc: All context
+  params:
+    context: all
+    fromParams: E Street Band
+    expect.fromContext1: Mick
+    expect.fromContext2: Jagger
+    expect.fromParams: E Street Band
+
+- call: module/libcontext
+  desc: All context with replacement in call
+  params:
+    context: all
+    fromContext1: Bruce
+    fromParams: E Street Band
+    expect.fromContext1: Bruce
+    expect.fromContext2: Jagger
+    expect.fromParams: E Street Band
+
+- resume:
+- call: module/libcontext
+  desc: Partial context
+  params:
+    context:
+      - fromContext2
+    fromParams: E Street Band
+    expect.fromContext1: unset
+    expect.fromContext2: Jagger
+    expect.fromParams: E Street Band
+
+
+- --call: module/sublibcontext

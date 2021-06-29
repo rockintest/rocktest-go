@@ -1,0 +1,18 @@
+- display: param1 = ${param1}, param2 = ${param2}
+
+- display: 'should be "localvalueTop" : ${param3}'
+
+- assert.equals:
+  params:
+    expected: value1
+    actual: ${param1}
+
+- assert.equals:
+  params:
+    expected: value2
+    actual: ${param2}
+
+- assert.equals:
+  params:
+    expected: localvalueTop
+    actual: ${param3}

@@ -1,0 +1,6 @@
+# syntax error. Missing "actual" param
+
+- assert.equals:
+  params:
+    expected: abc
+    message: I should not be raised

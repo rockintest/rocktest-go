@@ -1,0 +1,20 @@
+- display: ${fromContext1}
+
+- display: ${fromContext2}
+
+- display: ${fromParams}
+
+- assert.equals:
+  params:
+    expected: ${expect.fromContext1}
+    actual: ${fromContext1::unset}
+
+- assert.equals:
+  params:
+    expected: ${expect.fromContext2}
+    actual: ${fromContext2::unset}
+
+- assert.equals:
+  params:
+    expected: ${expect.fromParams}
+    actual: ${fromParams::unset}

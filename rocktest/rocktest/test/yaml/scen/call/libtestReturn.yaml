@@ -1,0 +1,38 @@
+- call: module/libWithReturn
+
+- assert.equals:
+  params:
+    expected: ${libWithReturn.fromLib}
+    actual: It comes from the library
+
+- assert.equals:
+  params:
+    expected: ${libWithReturn.fromSubLib}
+    actual: It comes from the sub library
+
+- assert.equals:
+  params:
+    expected: ${rock}
+    actual: nroll
+
+- assert.equals:
+  params:
+    expected: $${sublibWithReturn.fromSubLib}
+    actual: ${sublibWithReturn.fromSubLib}
+
+- assert.equals:
+  params:
+    expected: $${subrock}
+    actual: ${subrock}
+
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${subrock::unset}
+
+- assert.equals:
+  params:
+    expected: ${sublibWithReturn.fromSubLib::unset}
+    actual: unset
+
+- dump:

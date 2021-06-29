@@ -1,0 +1,19 @@
+- assert.equals:
+  params:
+    expected: abc
+    actual: abc
+    message: I should not be raised
+
+- var: myvar = myvalue
+
+- assert.equals:
+  params:
+    expected: myvalue
+    actual: ${myvar}
+    message: I should not be raised
+
+- assert.equals:
+  params:
+    expected: ${myvar}
+    actual: myvalue
+    message: I should not be raised

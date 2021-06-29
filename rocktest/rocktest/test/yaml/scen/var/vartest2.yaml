@@ -1,0 +1,24 @@
+- var: singer = Joe Cocker
+
+- assert.equals:
+  params:
+    expected: Joe Cocker
+    actual: ${singer}
+
+- var:
+  params:
+    name: record
+    value: >-
+      {
+        "singer" : "Phil Collins",
+        "band" : "Genesis"
+      }
+
+- assert.equals:
+  params:
+    expected: >-
+      {
+        "singer" : "Phil Collins",
+        "band" : "Genesis"
+      }
+    actual: ${record}

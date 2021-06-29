@@ -1,0 +1,5 @@
+- assert.match:
+  params:
+    expected: Bruce .* is the Bo..
+    actual: Mark Knopfler is the Boss
+    message: I should be raised

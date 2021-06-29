@@ -1,0 +1,3 @@
+# Should fail : incorrect format
+
+- sleep: a

@@ -1,0 +1,23 @@
+# If the name starts with ".", it will be put "as is" in the caller context
+# else, the name of the module is added
+# Here : the variable will be "libWithReturn.fromLib" in the caller context
+- return: fromLib = It comes from the library
+
+- call: module/sublibWithReturn
+
+- assert.equals:
+  params:
+    expected: It comes from the sub library
+    actual: ${sublibWithReturn.fromSubLib}
+
+- assert.equals:
+  params:
+    expected: subtest
+    actual: ${subrock}
+
+- return: fromSubLib = ${sublibWithReturn.fromSubLib}
+
+# Here : the variable will be "rock" in the caller context
+- return: .rock = nroll
+
+- dump:

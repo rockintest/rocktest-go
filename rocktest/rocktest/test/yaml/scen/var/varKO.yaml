@@ -1,0 +1,3 @@
+# Fails. Should be of the form VAR=VALUE
+
+- var: val

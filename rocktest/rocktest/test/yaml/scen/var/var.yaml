@@ -1,0 +1,20 @@
+- var: rock=test
+
+- display: ${rock}
+
+- assert.equals:
+  params:
+    expected: "test"
+    actual: ${rock}
+
+- var: ${rock}=jazz
+
+- assert.equals:
+  params:
+    expected: "jazz"
+    actual: ${test}
+
+- assert.equals:
+  params:
+    expected: "jazz"
+    actual: ${${rock}}

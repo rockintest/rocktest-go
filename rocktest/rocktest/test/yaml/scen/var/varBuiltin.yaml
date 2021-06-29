@@ -1,0 +1,20 @@
+- display: Step=${step}
+
+- assert.equals:
+  desc: Check builtin var step
+  params:
+    expected: 2
+    actual: ${step}
+
+- assert.equals:
+  desc: Check builtin var module
+  params:
+    expected: varBuiltin
+    actual: ${module}
+
+- assert.equals:
+  desc: Check builtin var step
+  params:
+    expected: 4
+    actual: ${step}
+ 
