@@ -1,0 +1,45 @@
+# No match
+
+- assert.equals:
+  params:
+    expected: false
+    actual: ${$regex.match(rockA*test,rockINtest)}
+
+# Match
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${$regex.match(rock.*test,rockINtest)}
+
+# Group extraction
+
+- assert.equals:
+  params:
+    expected: IN
+    actual: ${$regex.match(rock(.*)test(.*),rockINtest).1}
+
+- assert.equals:
+  params:
+    expected: '!!'
+    actual: ${$regex.match(rock(.*)test(.*),rockINtest!!).2}
+
+# Empty Group extraction
+
+- assert.equals:
+  params:
+    expected: ''
+    actual: ${$regex.match(rock(.*)test(.*),rocktest!!).1}
+
+- assert.equals:
+  params:
+    expected: ''
+    actual: ${$regex.match(rock(.*)test(.*),rocktest).2}
+
+    
+# Group not extracted
+
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${$regex.match(rock(.*)test(.*),rocktest).3::unset}

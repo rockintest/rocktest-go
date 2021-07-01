@@ -1,0 +1,128 @@
+# Test match
+
+# 1 group
+
+- regex.match:
+  params:
+    pattern: rock(.*)test
+    string: rockINtest
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${match.result}
+
+- assert.equals:
+  params:
+    expected: IN
+    actual: ${match.1}
+
+# 2 groups
+
+- regex.match:
+  as: match2
+  params:
+    pattern: rock(.*)test(.*)
+    string: rockINtest!!
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${match2.result}
+
+- assert.equals:
+  params:
+    expected: IN
+    actual: ${match2.1}
+
+- assert.equals:
+  params:
+    expected: "!!"
+    actual: ${match2.2}
+
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${match2.3::unset}
+
+# No match
+
+- regex.match:
+  as: match3
+  params:
+    pattern: rock(A*)test(.*)
+    string: rockINtest!!
+
+- assert.equals:
+  params:
+    expected: false
+    actual: ${match3.result}
+
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${match3.1::unset}
+
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${match3.2::unset}
+
+# 1 empty group
+
+- regex.match:
+  as: match4
+  params:
+    pattern: rock(A*)test(.*)
+    string: rocktest!!
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${match4.result}
+
+- assert.equals:
+  params:
+    expected: ""
+    actual: ${match4.1}
+
+- assert.equals:
+  params:
+    expected: "!!"
+    actual: ${match4.2}
+
+# Choose 1 group
+
+- regex.match:
+  params:
+    pattern: rock(.*)test(.*)
+    string: rockINtest!!
+    group: 2
+
+- assert.equals:
+  params:
+    expected: "!!"
+    actual: ${match.result}
+
+- regex.match:
+  params:
+    pattern: rock(.*)test(.*)
+    string: rocktest!!
+    group: 1
+
+- assert.equals:
+  params:
+    expected: ""
+    actual: ${match.result}
+
+- regex.match:
+  params:
+    pattern: rock(.*)test(.*)
+    string: rocktest!!
+    group: 2
+
+- assert.equals:
+  params:
+    expected: "!!"
+    actual: ${match.result}
+ 

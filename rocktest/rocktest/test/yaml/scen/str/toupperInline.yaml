@@ -1,0 +1,4 @@
+- assert.equals:
+  params:
+    expected: ROCK
+    actual: ${$toupper(RocK)}

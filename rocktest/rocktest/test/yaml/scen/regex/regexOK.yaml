@@ -1,0 +1,93 @@
+# Test match
+
+- regex.match:
+  params:
+    pattern: rock.*test
+    string: rockINtest
+
+- display: ${match.result}
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${match.result}
+
+- regex.match:
+  as: rock
+  params:
+    pattern: rock.*test
+    string: rockINtest
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${rock.result}
+
+- regex.match:
+  params:
+    as: test
+    pattern: rock.*test
+    string: rockINtest
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${test.result}
+
+- regex.match:
+  as: 
+  params:
+    pattern: rock.*test
+    string: rockINtest
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${result}
+
+# Test No match
+
+- regex.match:
+  params:
+    pattern: rockT*test
+    string: rockINtest
+
+- display: ${match.result}
+
+- assert.equals:
+  params:
+    expected: false
+    actual: ${match.result}
+
+- regex.match:
+  as: rock
+  params:
+    pattern: rockT*test
+    string: rockINtest
+
+- assert.equals:
+  params:
+    expected: false
+    actual: ${rock.result}
+
+- regex.match:
+  params:
+    as: test
+    pattern: rockT*test
+    string: rockINtest
+
+- assert.equals:
+  params:
+    expected: false
+    actual: ${test.result}
+
+- regex.match:
+  as: 
+  params:
+    pattern: rockT*test
+    string: rockINtest
+
+- assert.equals:
+  params:
+    expected: false
+    actual: ${result}

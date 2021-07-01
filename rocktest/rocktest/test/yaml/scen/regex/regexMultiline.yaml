@@ -1,0 +1,65 @@
+- regex.match:
+  params:
+    pattern: rock(.*)test
+    string: |
+      I
+      Love
+      rockINtest
+      and
+      the
+      rock
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${match.result}
+
+- assert.equals:
+  params:
+    expected: IN
+    actual: ${match.1}
+
+# Newline in extracted value
+
+- regex.match:
+  params:
+    pattern: rock(.*)test
+    string: |
+      rock
+      I
+      Love
+      It
+      test
+
+- assert.equals:
+  params:
+    expected: true
+    actual: ${match.result}
+
+- assert.equals:
+  params:
+    expected: |
+      
+      I
+      Love
+      It
+    actual: ${match.1}
+
+# Disable multiline parsing
+# "\n" does not match "."
+
+- regex.match:
+  params:
+    multiline: false
+    pattern: rock(.*)test
+    string: |
+      rock
+      I
+      Love
+      It
+      test
+
+- assert.equals:
+  params:
+    expected: false
+    actual: ${match.result}
