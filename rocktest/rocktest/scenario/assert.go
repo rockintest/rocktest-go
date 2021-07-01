@@ -16,6 +16,8 @@ func (module *Module) Assert_equals(params map[string]interface{}, scenario *Sce
 
 	paramsEx := scenario.ExpandMap(params)
 
+	log.Tracef("   Expended : expected= %s, actual= %s", paramsEx["expected"], paramsEx["actual"])
+
 	expected, err := scenario.GetString(paramsEx, "expected", nil)
 	if err != nil {
 		return err

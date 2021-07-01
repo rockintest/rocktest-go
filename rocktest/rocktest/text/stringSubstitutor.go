@@ -83,7 +83,7 @@ func (subst *StringSubstitutor) Replace(s string) string {
 					if varValue, ok := subst.lookup.Lookup(varNameString); ok {
 						varName[subst.level].WriteString(varValue)
 					} else {
-						varName[subst.level].WriteString("${" + varName[0].String() + "}")
+						varName[subst.level].WriteString("${" + varNameString + "}")
 					}
 				}
 			default:

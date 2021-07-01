@@ -8,7 +8,7 @@
 - assert.equals:
   params:
     expected: ROCK
-    actual: ${$$$$}
+    actual: ${??}
 
 - toupper: test
   as: t
@@ -21,4 +21,4 @@
 - assert.equals:
   params:
     expected: TEST
-    actual: ${$$$$}
+    actual: ${??}

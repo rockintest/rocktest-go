@@ -1,10 +1,8 @@
 package scenario
 
 import (
-	"errors"
 	"fmt"
 
-	"reflect"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -82,23 +80,6 @@ func (s *Step) Exec() error {
 		log.Infof("%s", s.Desc)
 	}
 
-	var params = []reflect.Value{
-		reflect.ValueOf(s.Params),
-		reflect.ValueOf(s.scenario),
-	}
-
-	meth := reflect.ValueOf(&s.M).MethodByName(s.Type)
-
-	if !meth.IsValid() {
-		return errors.New("Unknown step type: " + s.Type)
-	}
-
-	ret := reflect.ValueOf(&s.M).MethodByName(s.Type).Call(params)
-
-	if !ret[0].IsNil() {
-		return ret[0].Interface().(error)
-	} else {
-		return nil
-	}
+	return s.scenario.Exec(s.Type, s.Params)
 
 }

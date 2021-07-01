@@ -8,7 +8,7 @@
 - assert.equals:
   params:
     expected: rock
-    actual: ${$$$$}
+    actual: ${??}
 
 - dump:
 
@@ -23,4 +23,4 @@
 - assert.equals:
   params:
     expected: test
-    actual: ${$$$$}
+    actual: ${??}

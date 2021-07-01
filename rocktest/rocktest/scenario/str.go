@@ -12,7 +12,7 @@ func (module *Module) Toupper(params map[string]interface{}, scenario *Scenario)
 	ret := strings.ToUpper(val)
 
 	scenario.PutContext(as, ret)
-	scenario.PutContext("$$", ret)
+	scenario.PutContext("??", ret)
 
 	return nil
 }
@@ -27,7 +27,7 @@ func (module *Module) Tolower(params map[string]interface{}, scenario *Scenario)
 	ret := strings.ToLower(val)
 
 	scenario.PutContext(as, ret)
-	scenario.PutContext("$$", ret)
+	scenario.PutContext("??", ret)
 
 	return nil
 }
