@@ -10,7 +10,7 @@ import (
 )
 
 func initLog() {
-	log.SetLevel(log.TraceLevel)
+	log.SetLevel(log.DebugLevel)
 
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
@@ -53,6 +53,7 @@ func shouldFailWithMessage(t *testing.T, scen string, msg string) {
 
 	if err == nil {
 		t.Errorf("Error expected")
+		return
 	}
 
 	errMap := make(map[string]interface{})
@@ -60,7 +61,26 @@ func shouldFailWithMessage(t *testing.T, scen string, msg string) {
 	yaml.Unmarshal([]byte(err.Error()), errMap)
 
 	if errMap["error"].(string) != msg {
-		t.Errorf("Bad message type. Expected 'msg' but was %s", errMap["error"])
+		t.Errorf("Bad message type. Expected '%s' but was %s", msg, errMap["error"])
+	}
+
+}
+
+func shouldFailAtStep(t *testing.T, scen string, step int) {
+
+	err := exec(t, scen)
+
+	if err == nil {
+		t.Errorf("Error expected")
+		return
+	}
+
+	errMap := make(map[string]interface{})
+
+	yaml.Unmarshal([]byte(err.Error()), errMap)
+
+	if errMap["stepNumber"].(int) != step {
+		t.Errorf("Bad step number. Expected %d but was %v", step, errMap["stepNumber"])
 	}
 
 }

@@ -1,3 +1,5 @@
+# General test : run a mock and shutdown it
+
 - var: success=201
 - var: port=8080
 - var: boss=springsteen
@@ -47,5 +49,4 @@
 
 - sleep: 1
 - http.shutdownmock:
-
-- sleep: 10
+- sleep: 1

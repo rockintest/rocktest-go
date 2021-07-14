@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -15,7 +16,7 @@ import (
 type Handler struct {
 	scenario *Scenario
 	params   map[string]interface{}
-	server   http.Server
+	server   *http.Server
 }
 
 func (handler *Handler) findCondition(conditions []interface{}, req *http.Request) (map[string]interface{}, error) {
@@ -184,18 +185,18 @@ func (handler *Handler) handleRequest(w http.ResponseWriter, req *http.Request) 
 	}
 }
 
-func serve(h *Handler, port int) {
+func serve(h *Handler, port int) error {
 
-	//m := http.NewServeMux()
-	//s := http.Server{Addr: fmt.Sprintf(":%d", port), Handler: m}
-	//h.server = s
-	//m.HandleFunc("/", h.handleRequest)
+	err := h.server.ListenAndServe()
 
-	h.server.ListenAndServe()
-	log.Info("Mock stopped")
-
-	//http.HandleFunc("/", h.handleRequest)
-	//http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	if err != http.ErrServerClosed {
+		log.Errorf("Error runing mock: %v", err)
+		h.scenario.ErrorChan <- err
+		return err
+	} else {
+		log.Info("Mock stopped")
+		return nil
+	}
 }
 
 func (module *Module) checkConditions(conditions []interface{}) error {
@@ -241,38 +242,133 @@ func (module *Module) Http_mock(params map[string]interface{}, scenario *Scenari
 	s := http.Server{
 		Addr:         fmt.Sprintf(":%d", port),
 		Handler:      m,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
-		IdleTimeout:  1 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  10 * time.Second,
 	}
 
-	h.server = s
+	h.server = &s
 	m.HandleFunc("/", h.handleRequest)
 
 	if block {
 		serve(h, port)
 	} else {
-		scenario.PutStore("mockserver", s)
+		scenario.PutStore("mockserver", &s)
+		scenario.PutCleanup("mockserver", shutdownMock)
 		go serve(h, port)
 
-		//ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
-		//defer cancel()
+		// Wait a little, then check that we do not have an error
+		time.Sleep(time.Duration(200) * time.Millisecond)
 
-		//s.Shutdown(ctx)
+		select {
+		case err := <-scenario.ErrorChan:
+			return err
+		default:
+		}
+
 	}
 	return nil
 
 }
 
+// Module to shutdown current running mock
 func (module *Module) Http_shutdownmock(params map[string]interface{}, scenario *Scenario) error {
+	return shutdownMock(scenario)
+}
+
+// Check conditions
+func (module *Module) check(expect map[string]interface{}, code int, body string, scenario *Scenario) error {
+
+	expectedCode, err := scenario.GetNumber(expect, "code", nil)
+
+	if err == nil {
+
+		log.Debugf("Check return code. Expected = %d, actual = %d", expectedCode, code)
+
+		if expectedCode != code {
+			return fmt.Errorf("bad HTTP result code. Expected %d but was %d", expectedCode, code)
+		}
+
+	}
+
+	jsonMap, err := scenario.GetMap(expect, "body.json", nil)
+
+	if err == nil {
+
+		for k, v := range jsonMap {
+			val, err := module.jsonGet(body, "$."+k)
+
+			var actual string
+
+			if err != nil {
+				return err
+			}
+
+			switch s := val.(type) {
+			case string:
+				actual = s
+			default:
+				actual, err = module.toJson(val)
+				if err != nil {
+					return err
+				}
+			}
+
+			if actual != v {
+				return fmt.Errorf("no matching path=%s, expected %s but was %s", k, v, actual)
+			}
+
+		}
+
+	}
+
+	return nil
+}
+
+// Module do to HTTP Get requests
+func (module *Module) Http_get(params map[string]interface{}, scenario *Scenario) error {
+
+	paramsEx := scenario.ExpandMap(params)
+	url, err := scenario.GetString(paramsEx, "url", nil)
+
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		return err
+	}
+
+	scenario.PutContextAs(paramsEx, "get", "body", string(body))
+	scenario.PutContextAs(paramsEx, "get", "code", resp.StatusCode)
+
+	expect, err := scenario.GetMap(paramsEx, "expect", nil)
+
+	if err == nil {
+		return module.check(expect, resp.StatusCode, string(body), scenario)
+	}
+
+	return nil
+}
+
+func shutdownMock(scenario *Scenario) error {
+	log.Info("Cleanup mocks")
 	srv := scenario.GetStore("mockserver")
 
 	if srv != nil {
 		scenario.RemoveStore("mockserver")
-		srv2 := srv.(http.Server)
+		srv2 := srv.(*http.Server)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+
 		srv2.SetKeepAlivesEnabled(false)
 		ret := srv2.Shutdown(ctx)
 		return ret

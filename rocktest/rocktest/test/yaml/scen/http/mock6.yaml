@@ -1,0 +1,50 @@
+# Create a mock, stops it, then create another mock.
+
+# Spin a mock
+- http.mock:
+  params:
+    port: 8080
+    headers:
+      content-type: application/json
+    when:
+      - uri: /singer
+        method: get
+        response:
+          code: 200
+          body: bruce
+
+# Call it
+- http.get:
+  params:
+    url: 'http://localhost:8080/singer'
+
+- assert.equals:
+  params:
+    expected: bruce
+    actual: ${get.body}
+
+# Stop the curent mock
+- http.shutdownmock:
+
+# Spin another one on the same port
+- http.mock:
+  params:
+    port: 8080
+    headers:
+      content-type: application/json
+    when:
+      - uri: /singer
+        method: get
+        response:
+          code: 200
+          body: springsteen
+
+# Call it
+- http.get:
+  params:
+    url: 'http://localhost:8080/singer'
+
+- assert.equals:
+  params:
+    expected: springsteen
+    actual: ${get.body}

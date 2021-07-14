@@ -1,0 +1,37 @@
+# HTTP call with different prefix for return variables
+
+# Spin a mock
+- http.mock:
+  params:
+    port: 8080
+    headers:
+      content-type: application/json
+    when:
+      - uri: /singer
+        method: get
+        response:
+          code: 200
+          body: bruce
+
+# Call it, with "mymock" prefix
+- http.get:
+  params:
+    as: mymock
+    url: 'http://localhost:8080/singer'
+
+- assert.equals:
+  params:
+    expected: bruce
+    actual: ${mymock.body}
+
+
+# Call it, with empty prefix
+- http.get:
+  params:
+    as:
+    url: 'http://localhost:8080/singer'
+
+- assert.equals:
+  params:
+    expected: bruce
+    actual: ${body}

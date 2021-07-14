@@ -26,6 +26,9 @@ type Scenario struct {
 	// Contains the storage for the modules
 	Store map[string]interface{}
 
+	// Cleanup functions, set by modules
+	Cleanup map[string]func(*Scenario) error
+
 	Subst *text.StringSubstitutor
 
 	Quoter      text.ParamQuoter
@@ -40,6 +43,10 @@ type Scenario struct {
 	// Root, from where looking from modules
 	Root string
 
+	// Channel for errors
+	// If an error is posted on the channel, the scenario stops
+	ErrorChan chan (error)
+
 	Skip bool
 }
 
@@ -52,6 +59,8 @@ func NewScenario() *Scenario {
 	ret.Executor = NewInlineExecutor(ret)
 	ret.SubstExecutor = text.NewStringSubstitutorByLookuper(ret.Executor)
 	ret.Skip = false
+	ret.ErrorChan = make(chan error)
+	ret.Cleanup = make(map[string]func(*Scenario) error)
 	return ret
 }
 
@@ -112,7 +121,19 @@ func (s *Scenario) RunSteps(steps []interface{}) error {
 		default:
 
 			if step.Type == "Resume" || (!s.Skip && !strings.HasPrefix(step.Type, "--")) {
-				err := step.Exec()
+
+				var err error = nil
+
+				// Is it an error in the channel ? (another goroutine raised a fatal error)
+				select {
+				case err2 := <-s.ErrorChan:
+					err = fmt.Errorf("a goroutine raised this error : '%v' before processing this step", err2)
+				default:
+				}
+
+				if err == nil {
+					err = step.Exec()
+				}
 
 				if err != nil {
 
@@ -138,7 +159,21 @@ func (s *Scenario) RunSteps(steps []interface{}) error {
 		}
 	}
 
+	s.DoCleanup()
+
 	return nil
+}
+
+// Calls the cleanup functions set by the modules, if any
+func (s *Scenario) DoCleanup() {
+	for _, v := range s.Cleanup {
+		v(s)
+	}
+}
+
+// A module puts a cleanup function
+func (s *Scenario) PutCleanup(k string, f func(*Scenario) error) {
+	s.Cleanup[k] = f
 }
 
 func (s *Scenario) RunFromRoot(scen string) error {
@@ -231,6 +266,25 @@ func (s *Scenario) PutContext(name string, value interface{}) error {
 	}
 
 	return nil
+}
+
+// Put a variable in the context
+// Gets the "as" parameter from the params map, then builds the name of the variable
+// If "as" is not set, the name of the variable will be <defprefix>.<name>
+// Else, the prefix will be the value of the "as" parameter
+// If the "as" parameter is an empty string, then the name of the variable will be <name> (without prefix)
+func (s *Scenario) PutContextAs(params map[string]interface{}, defprefix string, name string, value interface{}) error {
+	prefix, _ := s.GetString(params, "as", defprefix)
+
+	var k string
+
+	if prefix != "" {
+		k = fmt.Sprintf("%s.%s", prefix, name)
+	} else {
+		k = name
+	}
+
+	return s.PutContext(k, value)
 }
 
 // Removes a variable from the context

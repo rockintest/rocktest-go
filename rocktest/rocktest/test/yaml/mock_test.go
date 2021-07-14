@@ -19,3 +19,11 @@ func TestMock3(t *testing.T) {
 func TestMock4(t *testing.T) {
 	shouldFail(t, "http/mockFail3.yaml")
 }
+
+func TestMock5(t *testing.T) {
+	shouldPass(t, "http/mock5.yaml")
+}
+
+func TestMock6(t *testing.T) {
+	shouldPass(t, "http/mock6.yaml")
+}

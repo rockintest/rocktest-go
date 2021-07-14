@@ -1,0 +1,30 @@
+# Check error during mock creation (adress already in use)
+
+# Spin a mock
+- http.mock:
+  params:
+    port: 8080
+    headers:
+      content-type: application/json
+    when:
+      - uri: /singer
+        method: get
+        response:
+          code: 200
+          body: bruce
+
+# Spin another one on the same port
+- http.mock:
+  params:
+    port: 8080
+    headers:
+      content-type: application/json
+    when:
+      - uri: /singer
+        method: get
+        response:
+          code: 200
+          body: springsteen
+
+# Should fail : address already in use
+
