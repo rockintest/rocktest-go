@@ -17,14 +17,23 @@ func (module *Module) Sleep(params map[string]interface{}, scenario *Scenario) e
 		return err
 	}
 
-	delay, err := strconv.Atoi(val)
+	if val == "forever" {
 
-	if err != nil {
-		return err
+		log.Debugf("Sleep forever")
+		time.Sleep(time.Duration(1<<63 - 1))
+
+	} else {
+
+		delay, err := strconv.Atoi(val)
+
+		if err != nil {
+			return err
+		}
+
+		log.Debugf("Sleep for %d seconds", delay)
+		time.Sleep(time.Duration(delay) * time.Second)
+
 	}
-
-	log.Debugf("Sleep for %d seconds", delay)
-	time.Sleep(time.Duration(delay) * time.Second)
 
 	return nil
 }

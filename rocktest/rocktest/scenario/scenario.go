@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -21,6 +22,9 @@ type Scenario struct {
 
 	// Contains the variables
 	Context map[string]string
+
+	// Contains the storage for the modules
+	Store map[string]interface{}
 
 	Subst *text.StringSubstitutor
 
@@ -42,6 +46,7 @@ type Scenario struct {
 func NewScenario() *Scenario {
 	ret := new(Scenario)
 	ret.Context = make(map[string]string)
+	ret.Store = make(map[string]interface{})
 	ret.Subst = text.NewStringSubstitutorByMap(ret.Context)
 	ret.SubstQuoter = text.NewStringSubstitutorByLookuper(ret.Quoter)
 	ret.Executor = NewInlineExecutor(ret)
@@ -187,6 +192,27 @@ func (s *Scenario) Run(scen string) error {
 
 }
 
+// Put data in the store
+func (s *Scenario) PutStore(name string, value interface{}) {
+	s.Store[name] = value
+}
+
+// Get data from the store
+func (s *Scenario) GetStore(name string) interface{} {
+	ret, found := s.Store[name]
+	if found {
+		return ret
+	} else {
+		return nil
+	}
+}
+
+// Remove data from the store
+func (s *Scenario) RemoveStore(name string) {
+	delete(s.Store, name)
+}
+
+// Put a variable in the context
 func (s *Scenario) PutContext(name string, value interface{}) error {
 
 	switch str := value.(type) {
@@ -205,6 +231,32 @@ func (s *Scenario) PutContext(name string, value interface{}) error {
 	}
 
 	return nil
+}
+
+// Removes a variable from the context
+func (s *Scenario) DeleteContext(name string) {
+	_, ok := s.Context[name]
+	if ok {
+		delete(s.Context, name)
+	}
+}
+
+// Removes variables matching a regex from the context
+func (s *Scenario) DeleteContextRegex(regex string) {
+
+	log.Debugf("Remove variables matching %s", regex)
+
+	for k := range s.Context {
+		re, err := regexp.Compile("^" + regex + "$")
+		if err != nil {
+			log.Errorf("Error compiling regex: %s", err.Error())
+			return
+		}
+		if re.MatchString(k) {
+			log.Tracef("Remove %s variable", k)
+			delete(s.Context, k)
+		}
+	}
 }
 
 func (s *Scenario) AddVariables(params map[string]interface{}) error {
@@ -298,6 +350,10 @@ func (s *Scenario) ExpandString(param string) string {
 
 // Replace the values of the variables in a map
 func (s *Scenario) ExpandMap(params map[string]interface{}) map[string]interface{} {
+
+	if params == nil {
+		return nil
+	}
 
 	ret := make(map[string]interface{})
 
@@ -488,6 +544,114 @@ func (s *Scenario) GetList(params map[string]interface{}, key string, def interf
 			return nil, errors.New("Value not found for " + key)
 		} else {
 			return asList(def)
+		}
+	}
+
+}
+
+// Safely convert an interface to a map of interfaces
+func (s *Scenario) asMap(def interface{}) (map[string]interface{}, error) {
+	ret, ok := def.(map[string]interface{})
+
+	if ok {
+		return ret, nil
+	} else {
+		return nil, fmt.Errorf("bad default value type. Must be map, not %T", def)
+	}
+}
+
+// Get a parameter as map. Returns the default value if not found.
+// If the value is not found, and there is no default value, or the default value is not a map returns an error.
+// If the value is not a map, return an error
+func (s *Scenario) GetMap(params map[string]interface{}, key string, def interface{}) (map[string]interface{}, error) {
+
+	if params == nil {
+		if def == nil {
+			return nil, errors.New("Params map empty, and no default value provided for key " + key)
+		} else {
+			return s.asMap(def)
+		}
+	}
+
+	ret, ok := params[key]
+
+	if ok {
+
+		if ret == "<nil>" {
+
+			return nil, nil
+
+		} else {
+			switch ret := ret.(type) {
+			case map[string]interface{}:
+				return ret, nil
+			default:
+				msg := fmt.Sprintf("Bad type for value %s. Must be a map, not %T", key, ret)
+				return nil, errors.New(msg)
+
+			}
+
+		}
+
+	} else {
+		if def == nil {
+			return nil, errors.New("Value not found for " + key)
+		} else {
+			return s.asMap(def)
+		}
+	}
+
+}
+
+// Safely convert an interface to a list of map (steps)
+func (s *Scenario) asSteps(def interface{}) ([]map[string]interface{}, error) {
+	ret, ok := def.([]map[string]interface{})
+
+	if ok {
+		return ret, nil
+	} else {
+		return nil, fmt.Errorf("bad default value type. Must be steps (a list if maps), not %T", def)
+	}
+}
+
+// Get a parameter as steps (a list of maps). Returns the default value if not found.
+// If the value is not found, and there is no default value, or the default value is not a list of maps returns an error.
+// If the value is not a list of maps, return an error
+func (s *Scenario) GetSteps(params map[string]interface{}, key string, def []map[string]interface{}) ([]map[string]interface{}, error) {
+
+	if params == nil {
+		if def == nil {
+			return nil, errors.New("Params map empty, and no default value provided for key " + key)
+		} else {
+			return def, nil
+		}
+	}
+
+	ret, ok := params[key]
+
+	if ok {
+
+		if ret == "<nil>" {
+
+			return nil, nil
+
+		} else {
+			switch ret := ret.(type) {
+			case []map[string]interface{}:
+				return ret, nil
+			default:
+				msg := fmt.Sprintf("Bad type for value %s. Must be a map, not %T", key, ret)
+				return nil, errors.New(msg)
+
+			}
+
+		}
+
+	} else {
+		if def == nil {
+			return nil, errors.New("Value not found for " + key)
+		} else {
+			return s.asSteps(def)
 		}
 	}
 

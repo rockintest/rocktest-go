@@ -1,0 +1,51 @@
+- var: success=201
+- var: port=8080
+- var: boss=springsteen
+
+- http.mock:
+  params:
+    port: ${port}
+    headers:
+      content-type: application/json
+      rock: test
+    when:
+      - uri: /singer/${boss}
+        method: get
+        response:
+          headers:
+            bruce: springsteen
+          code: ${success}
+          body: >-
+            {
+              fullname: "Bruce ${boss} aka The Boss",
+              bestsong: "Born in the USA"
+            }
+      - uri: /singer/${boss}
+        method: post
+        response:
+          code: ${success}
+          body: >-
+            {
+              fullname: "Bruce ${boss} aka The Boss",
+              bestsong: "Born in the USA"
+            }
+      - uri: /singer/sting
+        response: Sting rocks, and ${boss} too.
+      - uri: /singer/(.*)
+        response: 
+          body: |-
+            Rocker ${1}. URI=${0}. ${boss} rocks.
+            Path extracted: ${urlpath.1}  ${urlpath.2}
+            Variable band: ${urlvar.band::not set}
+          headers:
+            content-type: text/plain
+      - uri: /exec
+        steps:
+          - display: EXECUTE
+          - var: ret=cool
+        response: ${ret}
+
+- sleep: 1
+- http.shutdownmock:
+
+- sleep: 10

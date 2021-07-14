@@ -1,0 +1,22 @@
+# Fail : no port
+- http.mock:
+  params:
+    when:
+      - uri: /singer/springsteen
+        method: get
+        response:
+          code: 200
+          body: >-
+            {
+              fullname: "Bruce Springsteen aka The Boss",
+              bestsong: "Born in the USA"
+            }
+      - uri: /singer/springsteen
+        method: post
+        response:
+          code: 200
+          body: >-
+            {
+              fullname: "Bruce Springsteen aka The Boss",
+              bestsong: "Born in the USA"
+            }

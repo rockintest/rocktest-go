@@ -46,6 +46,22 @@ func main() {
 
 	s := scenario.NewScenario()
 
-	s.Run(scenFile)
+	err := s.Run(scenFile)
+
+	if err == nil {
+		fmt.Printf(`
+========================================
+=     Scenario Success ! It Rocks      ="
+========================================
+`)
+	} else {
+		fmt.Printf(`
+=======================================
+            Scenario failure             
+		
+%s	
+=======================================
+`, err.Error())
+	}
 
 }
