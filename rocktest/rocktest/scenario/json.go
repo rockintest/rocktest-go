@@ -9,7 +9,11 @@ import (
 func (module *Module) jsonGet(str string, path string) (interface{}, error) {
 	v := interface{}(nil)
 
-	json.Unmarshal([]byte(str), &v)
+	err := json.Unmarshal([]byte(str), &v)
+
+	if err != nil {
+		return nil, err
+	}
 
 	ret, err := jsonpath.Get(path, v)
 	if err != nil {

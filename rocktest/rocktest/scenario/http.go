@@ -372,7 +372,7 @@ func shutdownMock(scenario *Scenario) error {
 		srv2.SetKeepAlivesEnabled(false)
 		ret := srv2.Shutdown(ctx)
 		return ret
-	}
 
+	}
 	return nil
 }
