@@ -1,0 +1,178 @@
+# Test expectations in HTTP requests
+
+- title: Tests HTTP Mock
+
+# Spin a mock
+- http.mock:
+  params:
+    port: 8080
+    when:
+      - uri: /singer
+        method: get
+        response:
+          code: 200
+          body: ${headers.ping} 
+
+      - uri: /singer
+        method: options
+        response:
+          code: 200
+          body: ${headers.ping} 
+
+      - uri: /singer
+        method: head
+        response:
+          code: 200
+          headers:
+            pong: ${headers.ping} 
+
+      - uri: /singer
+        method: trace
+        response:
+          code: 200
+          headers:
+            pong: ${headers.ping} 
+
+      - uri: /singer
+        method: post
+        response:
+          code: 200
+          body: hello ${body} 
+          headers:
+            pong: ${headers.ping} 
+
+      - uri: /singer
+        method: patch
+        response:
+          code: 200
+          headers:
+            pong: ${headers.ping} 
+            body: hello ${body} 
+
+      - uri: /singer
+        method: delete
+        response:
+          code: 200
+          headers:
+            pong: ${headers.ping} 
+
+      - uri: /singer
+        method: connect
+        response:
+          code: 200
+          body: hello ${body} 
+          headers:
+            pong: ${headers.ping} 
+
+      - uri: /singer
+        method: put
+        response:
+          code: 200
+          headers:
+            pong: ${headers.ping}
+            body: hello ${body}
+
+# Test GET method
+- http.get: 
+  params:
+    url: http://localhost:8080/singer
+    headers:
+      ping: GET
+    expect:
+      code: 200
+      body.match: ^GET$
+
+# Test HEAD method
+- http.head: 
+  params:
+    url: http://localhost:8080/singer
+    headers:
+      ping: HEAD
+    expect:
+      code: 200
+      headers:
+        pong: HEAD
+
+# Test POST method
+- http.post: 
+  params:
+    url: http://localhost:8080/singer
+    body: bruce
+    headers:
+      ping: POST
+    expect:
+      code: 200
+      body.match: ^hello bruce$
+      headers:
+        pong: POST
+
+# Test DELETE method
+- http.delete: 
+  params:
+    url: http://localhost:8080/singer
+    headers:
+      ping: DELETE
+    expect:
+      code: 200
+      headers:
+        pong: DELETE
+
+# Test CONNECT method
+- http.connect: 
+  params:
+    url: http://localhost:8080/singer
+    body: bruce
+    headers:
+      ping: CONNECT
+    expect:
+      code: 200
+      body.match: ^hello bruce$
+      headers:
+        pong: CONNECT
+
+# Test PUT method
+- http.put: 
+  params:
+    url: http://localhost:8080/singer
+    body: bruce
+    headers:
+      ping: PUT
+    expect:
+      code: 200
+      headers:
+        pong: PUT
+        body: hello bruce
+
+# Test OPTIONS method
+- http.options: 
+  params:
+    url: http://localhost:8080/singer
+    headers:
+      ping: OPTIONS
+    expect:
+      code: 200
+      body.match: ^OPTIONS$
+
+# Test TRACE method
+- http.trace: 
+  params:
+    url: http://localhost:8080/singer
+    headers:
+      ping: TRACE
+    expect:
+      code: 200
+      headers:
+        pong: TRACE
+
+# Test PATCH method
+- http.patch: 
+  params:
+    url: http://localhost:8080/singer
+    body: bruce
+    headers:
+      ping: PATCH
+    expect:
+      code: 200
+      headers:
+        pong: PATCH
+        body: ^hello bruce$

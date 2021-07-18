@@ -27,3 +27,15 @@ func TestMock5(t *testing.T) {
 func TestMock6(t *testing.T) {
 	shouldPass(t, "http/mock6.yaml")
 }
+
+func TestMock7(t *testing.T) {
+	shouldFailAtStep(t, "http/mock7.yaml", 2)
+}
+
+func TestMockHeaders(t *testing.T) {
+	shouldPass(t, "http/mockHeaders.yaml")
+}
+
+func TestMockHeaders2(t *testing.T) {
+	shouldPass(t, "http/mockHeaders2.yaml")
+}

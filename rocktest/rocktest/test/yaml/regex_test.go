@@ -19,3 +19,7 @@ func TestRegex3(t *testing.T) {
 func TestRegex4(t *testing.T) {
 	shouldPass(t, "regex/regexMultiline.yaml")
 }
+
+func TestRegex(t *testing.T) {
+	shouldPass(t, "regex/regex.yaml")
+}

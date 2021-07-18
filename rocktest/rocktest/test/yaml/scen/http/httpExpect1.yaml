@@ -44,35 +44,26 @@
       body.json:
         bestsong: Born in the USA
 
-- exit:
 
+# Check JSON body with a variable and multiple notation
+# to check JSON Path and regex
+- var: song = Born
 
-
-# Check JSON body with a variable
-- step: var
-  name: song
-  value: Born
-
-
-- step: http.post
-  desc: Check with variable, syntax with list
-  params:
-    url: http://localhost:8080/singer/springsteen
-    expect:
-      - code = 201|200
-      - response.json.fullname = Bruce Springsteen aka The Boss
-      - response.json.bestsong = ${song}
-
-
-- step: http.get
+- http.get:
   desc: Check with Map syntax (prefered option)
   params:
     url: http://localhost:8080/singer/springsteen
     expect:
-      code: 200
+      code: 201|200
       body.json:
-        bestsong: Born .. the ...
-        "['fullname']" : Springsteen
-      body.matches:
+        bestsong: ${song} .. the ...
+        '["fullname"]': Springsteen
+      body.match:
         - Springsteen
-        - "\n  bestsong: \"Born in the USA\"\n"
+        - |
+          .*
+            "bestsong": "Born in the USA"
+
+        - "\n  \"bestsong\": \"Born in the USA\"\n"
+        - '\n  "bestsong": "Born in the USA"\n'
+        

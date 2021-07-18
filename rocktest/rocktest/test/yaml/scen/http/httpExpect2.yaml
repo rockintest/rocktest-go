@@ -1,4 +1,4 @@
-# Expect fail : wrong code
+# Expect : match in the body (regex)
 
 # Spin a mock
 - http.mock:
@@ -31,5 +31,7 @@
   params:
     url: http://localhost:8080/singer/springsteen
     expect:
-      code: 201
+      body.json:
+        bestsong: in ... USA
+        fullname: Bruce .* Boss
 

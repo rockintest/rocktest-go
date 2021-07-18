@@ -19,8 +19,8 @@
           code: ${success}
           body: >-
             {
-              fullname: "Bruce ${boss} aka The Boss",
-              bestsong: "Born in the USA"
+              "fullname": "Bruce ${boss} aka The Boss",
+              "bestsong": "Born in the USA"
             }
       - uri: /singer/${boss}
         method: post
@@ -28,8 +28,8 @@
           code: ${success}
           body: >-
             {
-              fullname: "Bruce ${boss} aka The Boss",
-              bestsong: "Born in the USA"
+              "fullname": "Bruce ${boss} aka The Boss",
+              "bestsong": "Born in the USA"
             }
       - uri: /singer/sting
         response: Sting rocks, and ${boss} too.

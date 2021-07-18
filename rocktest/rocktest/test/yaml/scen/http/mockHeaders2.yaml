@@ -1,0 +1,25 @@
+# Test with headers
+
+# Spin a mock
+- http.mock:
+  params:
+    port: 8080
+    when:
+      - uri: /singer/springsteen
+        method: get
+        response:
+          code: 200
+          body: ${headers.singer} from ${headers.band}
+
+# Call it
+- http.get:
+  params:
+    headers:
+      singer: bruce
+      band: e-street band
+    url: 'http://localhost:8080/singer/springsteen'
+
+- assert.equals:
+  params:
+    expected: bruce from e-street band
+    actual: ${get.body}

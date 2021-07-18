@@ -97,6 +97,7 @@ func (handler *Handler) handleRequest(w http.ResponseWriter, req *http.Request) 
 		handler.scenario.DeleteContextRegex("[0-9]+")
 		handler.scenario.DeleteContextRegex("urlpath.[0-9]+")
 		handler.scenario.DeleteContextRegex("urlvar.[0-9]+")
+		handler.scenario.DeleteContextRegex("headers.[0-9]+")
 
 		// Populate variables urlpath.XX with path elements
 		for i, v := range strings.Split(req.URL.Path, "/") {
@@ -106,6 +107,11 @@ func (handler *Handler) handleRequest(w http.ResponseWriter, req *http.Request) 
 		// Populate variables urlvar.XX with the variables
 		for k, v := range req.URL.Query() {
 			handler.scenario.PutContext(fmt.Sprintf("urlvar.%s", k), v[0])
+		}
+
+		// Populate variables headers.XX with the headers
+		for k, v := range req.Header {
+			handler.scenario.PutContext(fmt.Sprintf("headers.%s", strings.ToLower(k)), v[0])
 		}
 
 		// Add global headers, if any
@@ -277,16 +283,22 @@ func (module *Module) Http_shutdownmock(params map[string]interface{}, scenario 
 }
 
 // Check conditions
-func (module *Module) check(expect map[string]interface{}, code int, body string, scenario *Scenario) error {
+func (module *Module) check(expect map[string]interface{}, code int, body string, h http.Header, scenario *Scenario) error {
 
-	expectedCode, err := scenario.GetNumber(expect, "code", nil)
+	expectedCode, err := scenario.GetString(expect, "code", nil)
 
 	if err == nil {
 
-		log.Debugf("Check return code. Expected = %d, actual = %d", expectedCode, code)
+		log.Debugf("Check return code. Expected = %s, actual = %d", expectedCode, code)
 
-		if expectedCode != code {
-			return fmt.Errorf("bad HTTP result code. Expected %d but was %d", expectedCode, code)
+		ok, err := regexp.MatchString(expectedCode, fmt.Sprint(code))
+
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			return fmt.Errorf("bad HTTP result code. Expected %s but was %d", expectedCode, code)
 		}
 
 	}
@@ -296,7 +308,7 @@ func (module *Module) check(expect map[string]interface{}, code int, body string
 	if err == nil {
 
 		for k, v := range jsonMap {
-			val, err := module.jsonGet(body, "$."+k)
+			val, err := module.jsonGetRoot(body, k)
 
 			var actual string
 
@@ -314,8 +326,60 @@ func (module *Module) check(expect map[string]interface{}, code int, body string
 				}
 			}
 
-			if actual != v {
+			ok, err := regexp.MatchString(fmt.Sprint(v), actual)
+
+			if err != nil {
+				return err
+			}
+
+			if !ok {
+				log.Debugf("Check if regex '%s' match '%s' => NO", fmt.Sprint(v), actual)
 				return fmt.Errorf("no matching path=%s, expected %s but was %s", k, v, actual)
+			} else {
+				log.Debugf("Check if regex '%s' match '%s' => YES", fmt.Sprint(v), actual)
+			}
+
+		}
+
+	}
+
+	exprs, err := scenario.GetList(expect, "body.match", nil)
+
+	if err == nil {
+		for _, expr := range exprs {
+			ok, err := regexp.MatchString(fmt.Sprintf("(?s)%v", expr), body)
+
+			if err != nil {
+				return err
+			}
+
+			if !ok {
+				log.Debugf("Check if regex '%v' match the body => NO", expr)
+				return fmt.Errorf("body not matching '%v'", expr)
+			} else {
+				log.Debugf("Check if regex '%v' match the body => YES", expr)
+			}
+
+		}
+	}
+
+	headers, err := scenario.GetMap(expect, "headers", nil)
+
+	if err == nil {
+
+		for k, v := range headers {
+
+			ok, err := regexp.MatchString(fmt.Sprint(v), h.Get(k))
+
+			if err != nil {
+				return err
+			}
+
+			if !ok {
+				log.Debugf("Check if header %s match regex '%s' => NO", k, fmt.Sprint(v))
+				return fmt.Errorf("header %s does not match regex. Expected %v but was %s", k, v, h.Get(k))
+			} else {
+				log.Debugf("Check if header %s match regex '%s' => YES", k, fmt.Sprint(v))
 			}
 
 		}
@@ -325,37 +389,129 @@ func (module *Module) check(expect map[string]interface{}, code int, body string
 	return nil
 }
 
-// Module do to HTTP Get requests
-func (module *Module) Http_get(params map[string]interface{}, scenario *Scenario) error {
+// Do a http request
+func (module *Module) httpReq(params map[string]interface{}, meth string, scenario *Scenario) error {
 
 	paramsEx := scenario.ExpandMap(params)
 	url, err := scenario.GetString(paramsEx, "url", nil)
 
+	method := strings.ToLower(meth)
+
 	if err != nil {
 		return err
 	}
 
-	resp, err := http.Get(url)
+	bodyRequest, err := scenario.GetString(paramsEx, "body", nil)
+
+	var bodyReader io.Reader = nil
+	if err == nil {
+		bodyReader = strings.NewReader(bodyRequest)
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest(strings.ToUpper(method), url, bodyReader)
+
+	if err != nil {
+		return err
+	}
+
+	headers, err := scenario.GetMap(params, "headers", nil)
+
+	if err == nil {
+		for k, v := range headers {
+			req.Header.Add(k, fmt.Sprint(v))
+		}
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
+	bodyResponse, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return err
 	}
 
-	scenario.PutContextAs(paramsEx, "get", "body", string(body))
-	scenario.PutContextAs(paramsEx, "get", "code", resp.StatusCode)
+	scenario.PutContextAs(paramsEx, method, "body", string(bodyResponse))
+	scenario.PutContextAs(paramsEx, method, "code", resp.StatusCode)
+
+	for k, v := range resp.Header {
+		scenario.PutContextAs(paramsEx, method, "headers."+strings.ToLower(k), v[0])
+	}
 
 	expect, err := scenario.GetMap(paramsEx, "expect", nil)
 
 	if err == nil {
-		return module.check(expect, resp.StatusCode, string(body), scenario)
+		return module.check(expect, resp.StatusCode, string(bodyResponse), resp.Header, scenario)
 	}
 
 	return nil
+
+}
+
+// Module do to HTTP Get requests
+func (module *Module) Http_get(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "get", scenario)
+
+}
+
+// Module do to HTTP Post requests
+func (module *Module) Http_post(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "post", scenario)
+
+}
+
+// Module do to HTTP Put requests
+func (module *Module) Http_put(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "put", scenario)
+
+}
+
+// Module do to HTTP Head requests
+func (module *Module) Http_head(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "head", scenario)
+
+}
+
+// Module do to HTTP Delete requests
+func (module *Module) Http_delete(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "delete", scenario)
+
+}
+
+// Module do to HTTP Connect requests
+func (module *Module) Http_connect(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "connect", scenario)
+
+}
+
+// Module do to HTTP Options requests
+func (module *Module) Http_options(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "options", scenario)
+
+}
+
+// Module do to HTTP Trace requests
+func (module *Module) Http_trace(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "trace", scenario)
+
+}
+
+// Module do to HTTP Patch requests
+func (module *Module) Http_patch(params map[string]interface{}, scenario *Scenario) error {
+
+	return module.httpReq(params, "patch", scenario)
+
 }
 
 func shutdownMock(scenario *Scenario) error {

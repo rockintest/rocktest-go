@@ -1,4 +1,4 @@
-# Expect fail : wrong code
+# Expect fail : no match in the body (simple string)
 
 # Spin a mock
 - http.mock:
@@ -31,5 +31,7 @@
   params:
     url: http://localhost:8080/singer/springsteen
     expect:
-      code: 201
+      body.json:
+        fullname: Bruce Springsteen aka The Boss
+        bestsong: Alive and kicking
 

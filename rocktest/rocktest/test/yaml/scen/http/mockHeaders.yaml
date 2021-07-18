@@ -1,0 +1,78 @@
+# Test with headers
+
+# Spin a mock
+- http.mock:
+  params:
+    port: 8080
+    headers:
+      content-type: application/json
+      music: rock
+    when:
+      - uri: /singer/springsteen
+        method: get
+        response:
+          code: 200
+          body: bruce
+          headers:
+            singer: bruce
+            band: e-street band
+      - uri: /singer/collins
+        method: get
+        response:
+          code: 200
+          body: phil
+          headers:
+            singer: phil
+            band: genesis
+
+# Call it
+- http.get:
+  params:
+    url: 'http://localhost:8080/singer/springsteen'
+
+- assert.equals:
+  params:
+    expected: bruce
+    actual: ${get.body}
+
+- assert.equals:
+  params:
+    expected: rock
+    actual: ${get.headers.music}
+
+- assert.equals:
+  params:
+    expected: e-street band
+    actual: ${get.headers.band}
+
+- assert.equals:
+  params:
+    expected: bruce
+    actual: ${get.headers.singer}
+
+
+# Call it with another endpoint
+- http.get:
+  params:
+    url: 'http://localhost:8080/singer/collins'
+    as: get2
+
+- assert.equals:
+  params:
+    expected: phil
+    actual: ${get2.body}
+
+- assert.equals:
+  params:
+    expected: rock
+    actual: ${get2.headers.music}
+
+- assert.equals:
+  params:
+    expected: genesis
+    actual: ${get2.headers.band}
+
+- assert.equals:
+  params:
+    expected: phil
+    actual: ${get2.headers.singer}

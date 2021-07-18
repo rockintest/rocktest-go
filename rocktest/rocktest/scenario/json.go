@@ -2,9 +2,20 @@ package scenario
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
 )
+
+func (module *Module) jsonGetRoot(str string, path string) (interface{}, error) {
+
+	if strings.HasPrefix(path, "[") {
+		return module.jsonGet(str, "$"+path)
+	} else {
+		return module.jsonGet(str, "$."+path)
+	}
+
+}
 
 func (module *Module) jsonGet(str string, path string) (interface{}, error) {
 	v := interface{}(nil)
