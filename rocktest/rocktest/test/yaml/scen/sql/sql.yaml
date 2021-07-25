@@ -1,0 +1,49 @@
+- sql.connect:
+  params:
+    driver: ramsql
+    url: sql
+
+- sql.request:
+  params:
+    request: >-
+      CREATE TABLE rock (
+         id INT NOT NULL,
+         title VARCHAR(50) NOT NULL,
+         author VARCHAR(20) NOT NULL,
+         date DATE
+      );
+      insert into rock (id,title,author,date) values(3,'Suicide Blonde','INXS','1990/09/02');
+
+- sql.request:
+  params:
+    request: "insert into rock (id,title,author,date) values(1,'Born in the USA','Bruce Springsteen','1984/06/04');"
+
+- sql.request:
+  params:
+    request: select * from rock
+
+- display: ${request.3} rocks !!
+
+- display: '"${request.TITLE}" is the best song ever.'
+
+- sql.request:
+  params:
+    request: "insert into rock (id,title,author,date) values(2,'Highway to hell','AC/DC','1979/07/27');"
+
+- sql.request:
+  params:
+    request: select * from rock
+    expect:
+      - ^2,Highway to hell.*$
+      - Born in the USA
+      - Suicide Blonde
+
+- var: song=Suicide Blonde
+
+- sql.request:
+  params:
+    request: select * from rock
+    expect:
+      - ${song}
+      - Highway to hell
+      - Born in the USA

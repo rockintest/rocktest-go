@@ -1,0 +1,83 @@
+- display: Open in memory database
+
+- display: ${$sql.drivers()}
+
+- sql.connect:
+  params:
+    driver: ramsql
+    url: basic
+
+- sql.request:
+  params:
+    request: CREATE TABLE address (street TEXT, street_number INT);
+
+- sql.request:
+  params:
+    request: INSERT INTO address (street, street_number) VALUES ('aaa', 1);
+
+- sql.request:
+  params:
+    request: INSERT INTO address (street, street_number) VALUES ('bbb', 2);
+
+- sql.request:
+  params:
+    request: SELECT * FROM address;
+
+- display: NB=${request.nb}
+- assert.equals:
+  params:
+    expected: 2
+    actual: ${request.nb}
+
+- display: LINE=${request.0}
+- assert.equals:
+  params:
+    expected: bbb,2
+    actual: ${request.0}
+
+- display: VAL1=${request.1}
+- assert.equals:
+  params:
+    expected: bbb
+    actual: ${request.1}
+
+- display: VAL2=${request.2}
+- assert.equals:
+  params:
+    expected: 2
+    actual: ${request.2}
+
+- display: VAL1=${request.street}
+- assert.equals:
+  params:
+    expected: bbb
+    actual: ${request.street}
+
+- display: VAL2=${request.street_number}
+- assert.equals:
+  params:
+    expected: 2
+    actual: ${request.2}
+
+- display: JSON=${request.json}
+
+- sql.request:
+  params:
+    request: SELECT * FROM address;
+    expect:
+      - bbb,2
+      - aaa,1
+      - '[a-z]*,[0-9]*'
+
+- sql.request:
+  params:
+    request: SELECT * FROM address;
+    as: rock
+
+- assert.equals:
+  params:
+    expected: bbb
+    actual: ${rock.street}
+
+
+

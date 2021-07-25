@@ -1,0 +1,32 @@
+- display: ${$sql.drivers()}
+
+- sql.connect:
+  params:
+    driver: odbc
+    url: 'DSN=MariaDB-server'
+    
+- sql.request:
+  params:
+    request: DROP TABLE IF EXISTS address
+
+- sql.request:
+  params:
+    request: CREATE TABLE address (street TEXT, street_number INT);
+
+- sql.request:
+  params:
+    request: INSERT INTO address (street, street_number) VALUES ('aaa', 1);
+
+- sql.request:
+  params:
+    request: INSERT INTO address (street, street_number) VALUES ('bbb', 2);
+
+- sql.request:
+  params:
+    request: SELECT * FROM address;
+
+- display: NB=${request.nb}
+- assert.equals:
+  params:
+    expected: 2
+    actual: ${request.nb}

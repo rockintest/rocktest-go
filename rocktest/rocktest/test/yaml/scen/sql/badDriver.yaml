@@ -1,0 +1,4 @@
+- sql.connect:
+  params:
+    driver: baddriver
+    url: baddriver

@@ -1,0 +1,8 @@
+- sql.connect:
+  params:
+    driver: ramsql
+    url: badrequest
+
+- sql.request:
+  params:
+    request: This is a bad request

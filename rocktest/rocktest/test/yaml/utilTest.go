@@ -36,6 +36,7 @@ func shouldPass(t *testing.T, scen string) {
 	if err != nil {
 		t.Errorf("Error unexpected")
 	}
+
 }
 
 func shouldFail(t *testing.T, scen string) {

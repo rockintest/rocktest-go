@@ -1,0 +1,22 @@
+- display: ${$sql.drivers()}
+
+- sql.connect:
+  params:
+    driver: ramsql
+    url: checkfail
+
+- sql.request:
+  params:
+    request: CREATE TABLE address (street TEXT, street_number INT);
+
+- sql.request:
+  params:
+    request: INSERT INTO address (street, street_number) VALUES ('aaa', 1);
+
+- sql.request:
+  params:
+    request: SELECT * FROM address;
+    expect:
+      - noexist,2
+
+
