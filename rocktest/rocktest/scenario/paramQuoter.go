@@ -1,4 +1,4 @@
-package text
+package scenario
 
 import (
 	"bytes"
@@ -9,18 +9,19 @@ import (
 )
 
 type ParamQuoter struct {
+	Scen *Scenario
 }
 
-func (l ParamQuoter) Lookup(s string) (string, bool) {
+func (l ParamQuoter) Lookup(s string) (string, bool, error) {
 
 	// Do we have expression like
 	// ${module(p1,p2).path}
 
-	re, err := regexp.Compile(`\$([^(]+)\(((?:[^,]+)?(?:,[^,]+)*)\)(?:\.(.+))?`)
+	re, err := regexp.Compile(`(?s)\$([^(]+)\(((?:[^,]+)?(?:,[^,]+)*)\)(?:\.(.+))?`)
 
 	if err != nil {
 		log.Errorf(err.Error())
-		return "", false
+		return "", false, nil
 	}
 
 	if re.Match([]byte(s)) {
@@ -33,7 +34,7 @@ func (l ParamQuoter) Lookup(s string) (string, bool) {
 		log.Tracef("%s - %s - %s", module, params, path)
 
 		if strings.HasPrefix(params, "<<[") || params == "" {
-			return "", false
+			return "", false, nil
 		}
 
 		var ret bytes.Buffer
@@ -45,7 +46,12 @@ func (l ParamQuoter) Lookup(s string) (string, bool) {
 
 		for i, v := range paramArray {
 			ret.WriteString("<<[")
-			ret.WriteString(v)
+
+			vSubst, _ := l.Scen.Subst.Replace(v)
+			vSubst = strings.ReplaceAll(vSubst, "{", "\\{")
+			vSubst = strings.ReplaceAll(vSubst, "}", "\\}")
+
+			ret.WriteString(vSubst)
 			ret.WriteString("]>>")
 			if i != len(paramArray)-1 {
 				ret.WriteString(",")
@@ -61,8 +67,8 @@ func (l ParamQuoter) Lookup(s string) (string, bool) {
 
 		ret.WriteString("}")
 
-		return ret.String(), true
+		return ret.String(), true, nil
 	}
 
-	return "", false
+	return "", false, nil
 }

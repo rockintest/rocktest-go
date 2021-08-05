@@ -18,7 +18,10 @@ func putCaller(name string, val string, scenario *Scenario) {
 
 func (module *Module) Return(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	val, err := scenario.GetString(paramsEx, "value", nil)
 	if err != nil {

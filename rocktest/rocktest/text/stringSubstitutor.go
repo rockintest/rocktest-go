@@ -9,6 +9,8 @@ const (
 	DOLLAR
 	BRACKET
 	DOLLARBRACKET
+	ANTISLASH
+	ANTISLASHBRACKET
 )
 
 type StringSubstitutor struct {
@@ -17,7 +19,7 @@ type StringSubstitutor struct {
 	level  int
 }
 
-func (subst *StringSubstitutor) Replace(s string) string {
+func (subst *StringSubstitutor) Replace(s string) (string, error) {
 
 	subst.state = START
 	subst.level = -1
@@ -32,8 +34,19 @@ func (subst *StringSubstitutor) Replace(s string) string {
 			switch c {
 			case "$":
 				subst.state = DOLLAR
+			case "\\":
+				subst.state = ANTISLASH
 			default:
 				ret.WriteString(c)
+			}
+		case ANTISLASH:
+			switch c {
+			case "$":
+				subst.state = START
+				ret.WriteString(c)
+			default:
+				subst.state = START
+				ret.WriteString("\\" + c)
 			}
 		case DOLLAR:
 			switch c {
@@ -61,10 +74,21 @@ func (subst *StringSubstitutor) Replace(s string) string {
 				varName[subst.level].WriteString(c)
 				subst.state = BRACKET
 			}
+		case ANTISLASHBRACKET:
+			switch c {
+			case "{", "}":
+				varName[subst.level].WriteString(c)
+				subst.state = BRACKET
+			default:
+				varName[subst.level].WriteString("\\" + c)
+				subst.state = BRACKET
+			}
 		case BRACKET:
 			switch c {
 			case "$":
 				subst.state = DOLLARBRACKET
+			case "\\":
+				subst.state = ANTISLASHBRACKET
 			case "}":
 
 				varNameString := varName[subst.level].String()
@@ -73,14 +97,26 @@ func (subst *StringSubstitutor) Replace(s string) string {
 
 				// Last closing bracket ?
 				if subst.level == -1 {
-					if varValue, ok := subst.lookup.Lookup(varNameString); ok {
+					varValue, ok, err := subst.lookup.Lookup(varNameString)
+
+					if err != nil {
+						return "", err
+					}
+
+					if ok {
 						ret.WriteString(varValue)
 					} else {
 						ret.WriteString("${" + varNameString + "}")
 					}
 					subst.state = START
 				} else {
-					if varValue, ok := subst.lookup.Lookup(varNameString); ok {
+					varValue, ok, err := subst.lookup.Lookup(varNameString)
+
+					if err != nil {
+						return "", err
+					}
+
+					if ok {
 						varName[subst.level].WriteString(varValue)
 					} else {
 						varName[subst.level].WriteString("${" + varNameString + "}")
@@ -93,7 +129,7 @@ func (subst *StringSubstitutor) Replace(s string) string {
 
 	}
 
-	return ret.String()
+	return ret.String(), nil
 }
 
 func NewStringSubstitutorByLookuper(lookup Lookuper) *StringSubstitutor {

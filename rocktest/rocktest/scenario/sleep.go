@@ -9,7 +9,10 @@ import (
 
 func (module *Module) Sleep(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	val, err := scenario.GetString(paramsEx, "value", nil)
 

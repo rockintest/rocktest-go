@@ -1,0 +1,12 @@
+- var:
+  params:
+    name: json
+    value: >-
+      {
+        "name" : "inxs",
+        "album" : "Kick"
+
+- json.parse:
+  params:
+    json: ${json}
+    path: album

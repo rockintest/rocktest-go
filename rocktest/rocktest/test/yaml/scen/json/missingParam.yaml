@@ -1,0 +1,4 @@
+- json.parse:
+  params:
+    json_missing: empty
+    path: album

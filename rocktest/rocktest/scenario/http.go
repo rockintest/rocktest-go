@@ -26,14 +26,27 @@ func (handler *Handler) findCondition(conditions []interface{}, req *http.Reques
 		// The type is already checked. We can cast safely
 		condMap := cond.(map[string]interface{})
 
-		regexUri, _ := handler.scenario.GetString(condMap, "uri", "")
-		regexMeth, _ := handler.scenario.GetString(condMap, "method", "")
+		regexUri, err := handler.scenario.GetString(condMap, "uri", "")
+		if err != nil {
+			return nil, err
+		}
+		regexMeth, err := handler.scenario.GetString(condMap, "method", "")
+		if err != nil {
+			return nil, err
+		}
 
 		regexMeth = strings.ToUpper(regexMeth)
 
 		// Expand the variables in the URI and in the method
-		regexUri = handler.scenario.ExpandString(regexUri)
-		regexMeth = handler.scenario.ExpandString(regexMeth)
+		regexUri, err = handler.scenario.ExpandString(regexUri)
+		if err != nil {
+			return nil, err
+		}
+
+		regexMeth, err = handler.scenario.ExpandString(regexMeth)
+		if err != nil {
+			return nil, err
+		}
 
 		reUri, err := regexp.Compile(regexUri)
 		if err != nil {
@@ -116,7 +129,12 @@ func (handler *Handler) handleRequest(w http.ResponseWriter, req *http.Request) 
 
 		// Add global headers, if any
 		globalHeaders, _ := handler.scenario.GetMap(handler.params, "headers", nil)
-		globalHeaders = handler.scenario.ExpandMap(globalHeaders)
+		globalHeaders, err = handler.scenario.ExpandMap(globalHeaders)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Internal server error: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
+
 		for k, v := range globalHeaders {
 			w.Header().Set(k, fmt.Sprint(v))
 		}
@@ -125,7 +143,13 @@ func (handler *Handler) handleRequest(w http.ResponseWriter, req *http.Request) 
 		regexUri, _ := handler.scenario.GetString(cond, "uri", "")
 		if regexUri != "" {
 
-			reUri, err := regexp.Compile(handler.scenario.ExpandString(regexUri))
+			val, err := handler.scenario.ExpandString(regexUri)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Internal server error: %s", err.Error()), http.StatusInternalServerError)
+				return
+			}
+
+			reUri, err := regexp.Compile(val)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Internal server error: %s", err.Error()), http.StatusInternalServerError)
 				return
@@ -144,7 +168,11 @@ func (handler *Handler) handleRequest(w http.ResponseWriter, req *http.Request) 
 
 		}
 
-		condEx := handler.scenario.ExpandMap(cond)
+		condEx, err := handler.scenario.ExpandMap(cond)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Internal server error: %s", err.Error()), http.StatusInternalServerError)
+			return
+		}
 
 		// If steps are attached to the condition, execute them
 		steps, _ := handler.scenario.GetList(condEx, "steps", nil)
@@ -155,7 +183,12 @@ func (handler *Handler) handleRequest(w http.ResponseWriter, req *http.Request) 
 				return
 			}
 			// Expend condition again, to replace the variables declared in the steps
-			condEx = handler.scenario.ExpandMap(condEx)
+			condEx, err = handler.scenario.ExpandMap(condEx)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Internal server error: %s", err.Error()), http.StatusInternalServerError)
+				return
+			}
+
 		}
 
 		respString, err := handler.scenario.GetString(condEx, "response", nil)
@@ -220,7 +253,11 @@ func (module *Module) checkConditions(conditions []interface{}) error {
 
 func (module *Module) Http_mock(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
+
 	port, err := scenario.GetNumber(paramsEx, "port", nil)
 
 	if err != nil {
@@ -392,7 +429,11 @@ func (module *Module) check(expect map[string]interface{}, code int, body string
 // Do a http request
 func (module *Module) httpReq(params map[string]interface{}, meth string, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
+
 	url, err := scenario.GetString(paramsEx, "url", nil)
 
 	method := strings.ToLower(meth)

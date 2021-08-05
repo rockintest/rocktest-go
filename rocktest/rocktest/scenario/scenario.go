@@ -31,7 +31,7 @@ type Scenario struct {
 
 	Subst *text.StringSubstitutor
 
-	Quoter      text.ParamQuoter
+	Quoter      ParamQuoter
 	SubstQuoter *text.StringSubstitutor
 
 	Executor      *InlineExecutor
@@ -55,6 +55,7 @@ func NewScenario() *Scenario {
 	ret.Context = make(map[string]string)
 	ret.Store = make(map[string]interface{})
 	ret.Subst = text.NewStringSubstitutorByMap(ret.Context)
+	ret.Quoter.Scen = ret
 	ret.SubstQuoter = text.NewStringSubstitutorByLookuper(ret.Quoter)
 	ret.Executor = NewInlineExecutor(ret)
 	ret.SubstExecutor = text.NewStringSubstitutorByLookuper(ret.Executor)
@@ -287,6 +288,25 @@ func (s *Scenario) PutContextAs(params map[string]interface{}, defprefix string,
 	return s.PutContext(k, value)
 }
 
+// Delete a variable in the context
+// Gets the "as" parameter from the params map, then builds the name of the variable
+// If "as" is not set, the name of the variable will be <defprefix>.<name>
+// Else, the prefix will be the value of the "as" parameter
+// If the "as" parameter is an empty string, then the name of the variable will be <name> (without prefix)
+func (s *Scenario) DeleteContextAs(params map[string]interface{}, defprefix string, name string) {
+	prefix, _ := s.GetString(params, "as", defprefix)
+
+	var k string
+
+	if prefix != "" {
+		k = fmt.Sprintf("%s.%s", prefix, name)
+	} else {
+		k = name
+	}
+
+	s.DeleteContext(k)
+}
+
 // Removes a variable from the context
 func (s *Scenario) DeleteContext(name string) {
 	_, ok := s.Context[name]
@@ -353,19 +373,23 @@ func (s *Scenario) CopyVariables(source *Scenario) error {
 }
 
 // Replace the values of the variables in a list
-func (s *Scenario) ExpandList(params []interface{}) []interface{} {
+func (s *Scenario) ExpandList(params []interface{}) ([]interface{}, error) {
 
 	ret := make([]interface{}, len(params))
 
 	for i, v := range params {
-		ret[i] = s.Expand(v)
+		val, err := s.Expand(v)
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = val
 	}
 
-	return ret
+	return ret, nil
 }
 
 // Replace the values
-func (s *Scenario) Expand(params interface{}) interface{} {
+func (s *Scenario) Expand(params interface{}) (interface{}, error) {
 
 	switch paramCast := params.(type) {
 	case string:
@@ -375,47 +399,56 @@ func (s *Scenario) Expand(params interface{}) interface{} {
 	case map[string]interface{}:
 		return s.ExpandMap(paramCast)
 	default:
-		return params
+		return params, nil
 	}
 
 }
 
 // Replace the value of the variable
-func (s *Scenario) ExpandString(param string) string {
+func (s *Scenario) ExpandString(param string) (string, error) {
 
 	// First, quote the parameters.
 	// ${$module(p1,p2)} => ${$module(<<[p1]>>,<<[p2]>>)}
 	// This way, if p1 or p2 contain commas, it will work
-	ret := s.SubstQuoter.Replace(param)
-
-	// Then substitute the variables
-	// ${rock} => test
-	ret2 := s.Subst.Replace(ret)
+	ret, _ := s.SubstQuoter.Replace(param)
 
 	// Finaly, call the modules inline
 	// ${$tolower(ROCK)} => rock
-	// The function Tolowere is called and the result is returned
-	ret3 := s.SubstExecutor.Replace(ret2)
+	// The function Tolower is called and the result is returned
+	ret2, err := s.SubstExecutor.Replace(ret)
+
+	if err != nil {
+		return "", err
+	}
+
+	// Then substitute the variables
+	// ${rock} => test
+	ret3, _ := s.Subst.Replace(ret2)
 
 	log.Tracef("%s => %s => %s => %s", param, ret, ret2, ret3)
 
-	return ret3
+	return ret3, nil
 }
 
 // Replace the values of the variables in a map
-func (s *Scenario) ExpandMap(params map[string]interface{}) map[string]interface{} {
+func (s *Scenario) ExpandMap(params map[string]interface{}) (map[string]interface{}, error) {
 
 	if params == nil {
-		return nil
+		return nil, nil
 	}
 
 	ret := make(map[string]interface{})
 
 	for k, v := range params {
-		ret[k] = s.Expand(v)
+		val, err := s.Expand(v)
+
+		if err != nil {
+			return nil, err
+		}
+		ret[k] = val
 	}
 
-	return ret
+	return ret, nil
 
 }
 
@@ -731,7 +764,10 @@ func (s *Scenario) Exec(val string, params map[string]interface{}) error {
 	ret := reflect.ValueOf(&s.M).MethodByName(val2).Call(paramsExec)
 
 	if !ret[0].IsNil() {
-		return ret[0].Interface().(error)
+		x := ret[0].Interface()
+		err := x.(error)
+
+		return err
 	} else {
 		return nil
 	}

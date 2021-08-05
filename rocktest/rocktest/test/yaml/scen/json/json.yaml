@@ -1,0 +1,146 @@
+- var:
+  params:
+    name: json
+    value: >-
+      {
+        "name" : "inxs",
+        "album" : "Kick"
+      }
+
+- var:
+  params:
+    name: jsonarray
+    value: >-
+      {
+        "albums" : [
+          {
+            "name" : "inxs",
+            "album" : "Kick"
+          },
+          {
+            "name" : "Pink Floyd",
+            "album" : "The dark side of the moon"
+          }
+        ]
+      }
+
+- var:
+  params:
+    name: arrayroot
+    value: >-
+      [
+        {
+          "name" : "inxs",
+          "album" : "Kick"
+        },
+        {
+          "name" : "Pink Floyd",
+          "album" : "The dark side of the moon"
+        }
+      ]
+
+# Nominal case
+
+- json.parse:
+  params:
+    json: ${json}
+    path: album
+
+- display: Result = ${parse.result}
+
+- assert.equals:
+  params:
+    expected: Kick
+    actual: ${parse.result}
+
+# Non existing field
+
+- json.parse:
+  params:
+    json: ${json}
+    path: noexist
+
+- display: Result = ${parse.result::EMPTY}
+
+- assert.equals:
+  params:
+    expected: EMPTY
+    actual: ${parse.result::EMPTY}
+
+# Returning an array
+
+- json.parse:
+  params:
+    json: ${jsonarray}
+    path: albums
+
+- display: Result = ${parse.result}
+
+- assert.equals:
+  params:
+    expected: '[{"album":"Kick","name":"inxs"},{"album":"The dark side of the moon","name":"Pink Floyd"}]'
+    actual: ${parse.result}
+
+# Array as root
+
+- json.parse:
+  params:
+    json: ${arrayroot}
+    path: "[1].name"
+
+- display: Result = ${parse.result}
+
+- assert.equals:
+  params:
+    expected: Pink Floyd
+    actual: ${parse.result}
+
+# Returning a map
+
+- json.parse:
+  params:
+    json: ${jsonarray}
+    path: albums[1]
+
+- display: Result = ${parse.result}
+
+- assert.equals:
+  params:
+    expected: '{"album":"The dark side of the moon","name":"Pink Floyd"}'
+    actual: ${parse.result}
+
+# Parse result of a previous parse
+
+- json.parse:
+  params:
+    json: ${parse.result}
+    path: name
+
+- assert.equals:
+  params:
+    expected: Pink Floyd
+    actual: ${parse.result}
+
+# Inline syntax
+
+- var:
+  params:
+    name: json
+    value: >-
+      {
+        "name" : "inxs",
+        "album" : "Kick"
+      }
+
+- display: ${$json.parse(${json}).album}
+
+- assert.equals:
+  params:
+    expected: Kick
+    actual: ${$json.parse(${json}).album}
+
+- assert.equals:
+  params:
+    expected: unset
+    actual: ${$json.parse(${json}).band::unset}
+

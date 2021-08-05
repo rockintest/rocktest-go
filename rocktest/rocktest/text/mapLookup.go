@@ -31,7 +31,7 @@ func (l MapLookup) getValue(s string) (string, bool) {
 	}
 }
 
-func (l MapLookup) Lookup(s string) (string, bool) {
+func (l MapLookup) Lookup(s string) (string, bool, error) {
 
 	// Do we have expression like
 	// ${variable?value if set::value if not set} or
@@ -41,7 +41,7 @@ func (l MapLookup) Lookup(s string) (string, bool) {
 
 	if err != nil {
 		log.Errorf(err.Error())
-		return s, false
+		return s, false, nil
 	}
 
 	if re.Match([]byte(s)) {
@@ -58,20 +58,22 @@ func (l MapLookup) Lookup(s string) (string, bool) {
 
 		if found {
 			if valset != "" {
-				return valset, true
+				return valset, true, nil
 			} else {
-				return val, true
+				return val, true, nil
 			}
 		} else {
 			if valunset != "" {
-				return valunset, true
+				return valunset, true, nil
 			} else {
-				return s, false
+				return s, false, nil
 			}
 		}
 
 	} else {
-		return l.getValue(s)
+
+		str, ok := l.getValue(s)
+		return str, ok, nil
 	}
 
 }

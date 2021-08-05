@@ -14,7 +14,10 @@ func (module *Module) Assert_equals(params map[string]interface{}, scenario *Sce
 		log.Infof("   expected= %s, actual= %s", params["expected"], params["actual"])
 	}
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	log.Tracef("   Expended : expected= %s, actual= %s", paramsEx["expected"], paramsEx["actual"])
 
@@ -45,7 +48,10 @@ func (module *Module) Assert_equals(params map[string]interface{}, scenario *Sce
 
 func (module *Module) Assert_match(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	expected, err := scenario.GetString(paramsEx, "expected", nil)
 	if err != nil {
@@ -77,7 +83,11 @@ func (module *Module) Assert_match(params map[string]interface{}, scenario *Scen
 
 func (module *Module) Assert_fail(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
+
 	ret, err := scenario.GetString(paramsEx, "value", "")
 
 	if err != nil {
@@ -89,7 +99,10 @@ func (module *Module) Assert_fail(params map[string]interface{}, scenario *Scena
 }
 
 func (module *Module) Assert_set(params map[string]interface{}, scenario *Scenario) error {
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	ret, err := scenario.GetList(paramsEx, "value", "")
 	if err != nil {

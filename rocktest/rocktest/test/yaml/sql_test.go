@@ -43,7 +43,7 @@ func TestSQLlite(t *testing.T) {
 // CREATE DATABASE rocktest
 
 func TestSQLMySQL(t *testing.T) {
-	shouldPass(t, "sql/mysql.yaml")
+	//	shouldPass(t, "sql/mysql.yaml")
 }
 
 // Download appropriate ODBC driver at:
@@ -54,7 +54,7 @@ func TestSQLMySQL(t *testing.T) {
 // Needs unixodbc-dev package to be installed
 
 func TestSQLodbc(t *testing.T) {
-	shouldPass(t, "sql/odbc.yaml")
+	//	shouldPass(t, "sql/odbc.yaml")
 }
 
 /*
@@ -74,5 +74,5 @@ postgres=# \q
 */
 
 func TestSQLpostgres(t *testing.T) {
-	shouldPass(t, "sql/postgres.yaml")
+	//	shouldPass(t, "sql/postgres.yaml")
 }

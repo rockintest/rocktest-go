@@ -13,7 +13,10 @@ func (module *Module) Regex_matchMeta() Meta {
 
 func (module *Module) Regex_match(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	pattern, err := scenario.GetString(paramsEx, "pattern", nil)
 	if err != nil {
@@ -70,7 +73,8 @@ func (module *Module) Regex_match(params map[string]interface{}, scenario *Scena
 				scenario.PutContext("??", res[0][group])
 			} else {
 				scenario.PutContext(as+"result", "")
-				scenario.PutContext("??", "")
+				scenario.DeleteContext("??")
+				//scenario.PutContext("??", "")
 			}
 		}
 

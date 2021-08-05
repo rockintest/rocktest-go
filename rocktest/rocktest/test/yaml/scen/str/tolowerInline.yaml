@@ -2,3 +2,10 @@
   params:
     expected: rock
     actual: ${$tolower(RocK)}
+
+- var: str=Ro}cK
+
+- assert.equals:
+  params:
+    expected: ro}ck
+    actual: ${$tolower(${str})}

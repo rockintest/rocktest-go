@@ -4,7 +4,10 @@ import "strings"
 
 func (module *Module) Toupper(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	val, _ := scenario.GetString(paramsEx, "value", "")
 	as, _ := scenario.GetString(paramsEx, "as", "toupper.result")
@@ -19,7 +22,10 @@ func (module *Module) Toupper(params map[string]interface{}, scenario *Scenario)
 
 func (module *Module) Tolower(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	val, _ := scenario.GetString(paramsEx, "value", "")
 	as, _ := scenario.GetString(paramsEx, "as", "tolower.result")

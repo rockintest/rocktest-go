@@ -18,16 +18,16 @@ func NewInlineExecutor(s *Scenario) *InlineExecutor {
 	return ret
 }
 
-func (x InlineExecutor) Lookup(s string) (string, bool) {
+func (x InlineExecutor) Lookup(s string) (string, bool, error) {
 
 	// Do we have expression like
-	// ${module(p1,p2).path}
+	// ${module(p1,p2).path} or ${module(p1,p2).path::DEFAULT}
 
-	re, err := regexp.Compile(`\$([^(]+)\(((?:[^,]+)?(?:,[^,]+)*)\)(?:\.(.+))?`)
+	re, err := regexp.Compile(`(?s)\$([^(]+)\(((?:[^,]+)?(?:,[^,]+)*)\)(?:\.([^:]+))?(::){0,1}(.*)`)
 
 	if err != nil {
 		log.Errorf(err.Error())
-		return "", false
+		return "", false, err
 	}
 
 	if re.Match([]byte(s)) {
@@ -72,23 +72,27 @@ func (x InlineExecutor) Lookup(s string) (string, bool) {
 			paramMap[meta.Ext] = path
 		}
 
-		err := x.scenario.Exec(module, paramMap)
+		err2 := x.scenario.Exec(module, paramMap)
 
-		if err != nil {
-			log.Errorf("Cannot execute inline step: %s", err.Error())
-			return s, false
+		if err2 != nil {
+			log.Errorf("Cannot execute inline step: %s", err2.Error())
+			return s, false, err2
 		}
 
 		ret, found := x.scenario.Context["??"]
 
 		if found {
-			return ret, true
+			return ret, true, nil
 		} else {
-			return "", true
+			if len(res[0]) > 5 {
+				return res[0][5], true, nil
+			} else {
+				return "", true, nil
+			}
 		}
 
 	} else {
-		return "", false
+		return "", false, nil
 	}
 
 }

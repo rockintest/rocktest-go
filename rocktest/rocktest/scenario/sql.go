@@ -22,7 +22,10 @@ type sqlData struct {
 
 func (module *Module) Sql_connect(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 	driver, err := scenario.GetString(paramsEx, "driver", nil)
 
 	if err != nil {
@@ -66,7 +69,10 @@ func closeSQL(scenario *Scenario) error {
 
 func (module *Module) Sql_request(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	reqs, err := scenario.GetString(paramsEx, "request", nil)
 	if err != nil {
@@ -210,7 +216,10 @@ func (module *Module) search(info []map[string]string, pregex string) error {
 func (module *Module) Sql_drivers(params map[string]interface{}, scenario *Scenario) error {
 	ret := sql.Drivers()
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	retJson, _ := json.Marshal(ret)
 

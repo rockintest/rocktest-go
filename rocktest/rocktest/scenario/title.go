@@ -6,7 +6,10 @@ import (
 
 func (module *Module) Title(params map[string]interface{}, scenario *Scenario) error {
 
-	paramsEx := scenario.ExpandMap(params)
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
 
 	val, _ := scenario.GetString(paramsEx, "value", "")
 	fmt.Print("========================\n")
