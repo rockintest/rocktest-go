@@ -14,6 +14,7 @@ type Step struct {
 	Desc   string
 	Value  string
 	Params map[string]interface{}
+	Steps  []interface{}
 
 	M        Module
 	scenario *Scenario
@@ -39,6 +40,8 @@ func NewStep(n map[string]interface{}, s *Scenario) *Step {
 			ret.Desc = fmt.Sprintf("%v", v)
 		case "params":
 			ret.Params = nodeToMap(v)
+		case "steps":
+			ret.Steps = nodeToList(v)
 		case "as":
 			as = fmt.Sprint(v)
 		default:

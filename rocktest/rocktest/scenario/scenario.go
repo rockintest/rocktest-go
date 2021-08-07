@@ -29,6 +29,9 @@ type Scenario struct {
 	// Cleanup functions, set by modules
 	Cleanup map[string]func(*Scenario) error
 
+	// Functions
+	Functions map[string][]interface{}
+
 	Subst *text.StringSubstitutor
 
 	Quoter      ParamQuoter
@@ -62,6 +65,7 @@ func NewScenario() *Scenario {
 	ret.Skip = false
 	ret.ErrorChan = make(chan error)
 	ret.Cleanup = make(map[string]func(*Scenario) error)
+	ret.Functions = make(map[string][]interface{})
 	return ret
 }
 
@@ -100,14 +104,13 @@ func (s *Scenario) RunSteps(steps []interface{}) error {
 	for _, v := range steps {
 		i++
 
-		log.Infof("---------- Step %s/%d ----------", s.Context["module"], i)
-
 		s.Context["step"] = fmt.Sprint(i)
 
 		node := nodeToMap(v)
 		step := NewStep(node, s)
 
-		if !s.Skip && !strings.HasPrefix(step.Type, "--") {
+		if !s.Skip && !strings.HasPrefix(step.Type, "--") && step.Type != "Function" {
+			log.Infof("---------- Step %s/%d ----------", s.Context["module"], i)
 			log.Infof("[%s/%d] %s - %s", s.Context["module"], i, strings.ToUpper(step.Type), humanStr(step.Params["value"]))
 			if log.IsLevelEnabled(log.DebugLevel) {
 				for name, val := range step.Params {
@@ -119,6 +122,9 @@ func (s *Scenario) RunSteps(steps []interface{}) error {
 		switch step.Type {
 		case "Exit":
 			stop = true
+		case "Function":
+			// Do not execute function yet.
+			// The steps are in the Functions map
 		default:
 
 			if step.Type == "Resume" || (!s.Skip && !strings.HasPrefix(step.Type, "--")) {
@@ -177,6 +183,26 @@ func (s *Scenario) PutCleanup(k string, f func(*Scenario) error) {
 	s.Cleanup[k] = f
 }
 
+// Extracts the functions and put them in the "Functions" map, for later call
+func (s *Scenario) ExtractFunctions(steps []interface{}) error {
+	for _, v := range steps {
+		node := nodeToMap(v)
+		step := NewStep(node, s)
+
+		if step.Type == "Function" {
+			log.Debugf("Loading function %s", step.Value)
+			stepsList, err := s.asList(step.Steps)
+
+			if err != nil {
+				return fmt.Errorf("error while loading function %s: %s", step.Value, err.Error())
+			}
+
+			s.Functions[step.Value] = stepsList
+		}
+	}
+	return nil
+}
+
 func (s *Scenario) RunFromRoot(scen string) error {
 	log.Infof("Run scenario %s", scen)
 
@@ -196,6 +222,7 @@ func (s *Scenario) RunFromRoot(scen string) error {
 	}
 
 	steps := nodeToList(s.Steps)
+	s.ExtractFunctions(steps)
 
 	return s.RunSteps(steps)
 
@@ -223,6 +250,7 @@ func (s *Scenario) Run(scen string) error {
 	}
 
 	steps := nodeToList(s.Steps)
+	s.ExtractFunctions(steps)
 
 	return s.RunSteps(steps)
 
@@ -644,6 +672,17 @@ func (s *Scenario) asMap(def interface{}) (map[string]interface{}, error) {
 		return ret, nil
 	} else {
 		return nil, fmt.Errorf("bad default value type. Must be map, not %T", def)
+	}
+}
+
+// Safely convert an interface to a list of interfaces
+func (s *Scenario) asList(def interface{}) ([]interface{}, error) {
+	ret, ok := def.([]interface{})
+
+	if ok {
+		return ret, nil
+	} else {
+		return nil, fmt.Errorf("bad default value type. Must be a list, not %T", def)
 	}
 }
 

@@ -74,7 +74,6 @@ func (module *Module) Regex_match(params map[string]interface{}, scenario *Scena
 			} else {
 				scenario.PutContext(as+"result", "")
 				scenario.DeleteContext("??")
-				//scenario.PutContext("??", "")
 			}
 		}
 
