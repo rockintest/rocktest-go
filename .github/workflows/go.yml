@@ -13,16 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: dir
-      run: cd rocktest
-
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
         go-version: 1.17
 
     - name: Build
-      run: go build -v ./...
+      run: go build -o rock rocktest/main/main.go
 
   release-linux-amd64:
     name: release linux/amd64
