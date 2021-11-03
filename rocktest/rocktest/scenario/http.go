@@ -3,6 +3,7 @@ package scenario
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -428,6 +429,8 @@ func (module *Module) check(expect map[string]interface{}, code int, body string
 
 // Do a http request
 func (module *Module) httpReq(params map[string]interface{}, meth string, scenario *Scenario) error {
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	paramsEx, err := scenario.ExpandMap(params)
 	if err != nil {
