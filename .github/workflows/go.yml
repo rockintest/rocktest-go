@@ -13,6 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: dir
+      run: cd rocktest
+
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
@@ -20,7 +23,7 @@ jobs:
 
     - name: Build
       run: go build -v ./...
-      
+
   release-linux-amd64:
     name: release linux/amd64
     runs-on: ubuntu-latest
