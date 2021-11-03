@@ -32,4 +32,4 @@ jobs:
 
 
     - name: Build Docker image
-      run: ./integ/push.sh ${GITHUB_REF##*/}
+      run: ./integ/build.sh ${GITHUB_REF##*/}

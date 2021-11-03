@@ -8,3 +8,14 @@ test -z "$1" && {
 }
 
 curl https://github.com/rockintest/rocktest-go/releases/download/$VER/rocktest-go-$VER-linux-amd64.tar.gz | tar xzf -
+
+docker build -t rocktest-go .
+
+rm rocktest-go
+
+docker tag rocktest-go rockintest/rocktest-go:latest
+docker push rockintest/rocktest-go:latest
+
+docker tag rocktest-go rockintest/rocktest-go:$1
+docker push rockintest/rocktest-go:$1
+
