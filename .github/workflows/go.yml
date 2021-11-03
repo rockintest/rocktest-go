@@ -29,7 +29,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: install deps
-      run: sudo apt install unixodbc-dev
+      run: sudo apt install unixodbc
 
     - name: release
       uses: wangyoucao577/go-release-action@v1.20
@@ -38,3 +38,4 @@ jobs:
         goos: linux
         goarch: amd64
         project_path: ./rocktest/rocktest/main
+        pre_command: sudo apt install unixodbc unixodbc-dev
