@@ -28,6 +28,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: install deps
+      run: sudo apt install unixodbc-dev
+
     - name: release
       uses: wangyoucao577/go-release-action@v1.20
       with:
