@@ -7,6 +7,8 @@ test -z "$1" && {
     exit 1
 }
 
+cd $(dirname $0)
+
 echo "Use release $VER : https://github.com/rockintest/rocktest-go/releases/download/$VER/rocktest-go-$VER-linux-amd64.tar.gz"
 curl -L https://github.com/rockintest/rocktest-go/releases/download/$VER/rocktest-go-$VER-linux-amd64.tar.gz | tar xzf -
 
