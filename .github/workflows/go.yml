@@ -6,28 +6,11 @@ on:
 
 jobs:
 
-#  build:
-#    runs-on: ubuntu-latest
-#    steps:
-#    - uses: actions/checkout@v2
-#
-#    - name: Set up Go
-#      uses: actions/setup-go@v2
-#      with:
-#        go-version: 1.17
-#
-#    - name: Build
-#      working-directory: ./rocktest/rocktest
-#      run: go build -o rocktest main/main.go
-
   release-linux-amd64:
     name: release linux/amd64
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
-    - name: install deps
-      run: sudo apt install unixodbc
 
     - name: release
       uses: wangyoucao577/go-release-action@v1.20
@@ -37,3 +20,15 @@ jobs:
         goarch: amd64
         project_path: ./rocktest/rocktest/main
         pre_command: apt update && apt install -y unixodbc unixodbc-dev
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERUSER }}
+        password: ${{ secrets.DOCKERPASSWORD }}
+
+    - name: debug
+      run: echo REF=${GITHUB_REF##*/}
+
+#    - name: Build Docker image
+#      run: ./integ/push.sh ${GITHUB_REF##*/}
