@@ -38,4 +38,4 @@ jobs:
         goos: linux
         goarch: amd64
         project_path: ./rocktest/rocktest/main
-        pre_command: apt install unixodbc unixodbc-dev
+        pre_command: apt update && apt install unixodbc unixodbc-dev
