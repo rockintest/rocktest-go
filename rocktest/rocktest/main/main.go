@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pborman/getopt/v2"
+
 	"io.rocktest/rocktest/scenario"
 
 	log "github.com/sirupsen/logrus"
 )
 
 func banner() {
-	version := "2.0.0"
+	version := "1.0.0-go"
 
 	banner := `
 ________               ______  ________              _____
@@ -25,8 +27,23 @@ _  _, _/ / /_/ // /__  _  ,<   _  /    /  __/_(__  ) / /_
 
 }
 
-func initLog() {
-	log.SetLevel(log.TraceLevel)
+func initLog(verbose *string) {
+
+	switch *verbose {
+	case "0":
+		log.SetLevel(log.ErrorLevel)
+	case "1":
+		log.SetLevel(log.WarnLevel)
+	case "2":
+		log.SetLevel(log.InfoLevel)
+	case "3":
+		log.SetLevel(log.DebugLevel)
+	case "4":
+		log.SetLevel(log.TraceLevel)
+	default:
+		fmt.Printf("Bad -v value. Allowed values are 0 - 4")
+		os.Exit(1)
+	}
 
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp:   true,
@@ -36,11 +53,15 @@ func initLog() {
 
 func main() {
 
-	initLog()
+	verbose := getopt.StringLong("verbose", 'v', "0", "Log level (0=ERROR -> 4=TRACE")
+	getopt.Parse()
+	args := getopt.Args()
+
+	initLog(verbose)
 
 	banner()
 
-	scenFile := os.Args[1]
+	scenFile := args[0]
 
 	log.Infof("%s", "Load scenario")
 
@@ -51,7 +72,7 @@ func main() {
 	if err == nil {
 		fmt.Printf(`
 ========================================
-=     Scenario Success ! It Rocks      ="
+=     Scenario Success ! It Rocks      =
 ========================================
 `)
 	} else {
