@@ -34,4 +34,4 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: linux
         goarch: amd64
-        working-directory: ./rocktest/rocktest
+        project_path: ./rocktest/rocktest
