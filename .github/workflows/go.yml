@@ -1,26 +1,24 @@
 name: Go
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  release:
+    types: [created]
 
 jobs:
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
-
-    - name: Build
-      working-directory: ./rocktest/rocktest
-      run: go build -o rocktest main/main.go
+#  build:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v2
+#
+#    - name: Set up Go
+#      uses: actions/setup-go@v2
+#      with:
+#        go-version: 1.17
+#
+#    - name: Build
+#      working-directory: ./rocktest/rocktest
+#      run: go build -o rocktest main/main.go
 
   release-linux-amd64:
     name: release linux/amd64
