@@ -170,6 +170,36 @@ func (module *Module) Kafka_check(params map[string]interface{}, scenario *Scena
 
 }
 
+func (module *Module) Kafka_consumeForever(params map[string]interface{}, scenario *Scenario) error {
+
+	paramsEx, err := scenario.ExpandMap(params)
+	if err != nil {
+		return err
+	}
+
+	name, _ := scenario.GetString(paramsEx, "name", "default")
+	data := scenario.GetStore("kafka." + name).(kafkaData)
+
+	topic, err := scenario.GetString(paramsEx, "topic", nil)
+	if err != nil {
+		return err
+	}
+
+	data.consumer.SubscribeTopics([]string{topic}, nil)
+
+	for {
+		msg, err := data.consumer.ReadMessage(-1)
+		if err == nil {
+			log.Infof("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
+		} else {
+			// If timeout : nothing to read more yet
+			log.Errorf("Consumer error: %v (%v)\n", err, msg)
+			return err
+		}
+	}
+
+}
+
 func (module *Module) Kafka_produce(params map[string]interface{}, scenario *Scenario) error {
 
 	paramsEx, err := scenario.ExpandMap(params)

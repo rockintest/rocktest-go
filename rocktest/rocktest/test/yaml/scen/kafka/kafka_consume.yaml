@@ -1,0 +1,11 @@
+- display: Kafka Test
+
+- kafka.connect:
+  params:
+    server: "myrancher:30190"
+    group: group # optional
+    offset: earliest # optional
+
+- kafka.consumeForever:
+  params:
+    topic: rockers
