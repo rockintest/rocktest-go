@@ -6,6 +6,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/alexbrainman/odbc v0.0.0-20210605012845-39f8520b0d5f
 	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect

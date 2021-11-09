@@ -1,0 +1,42 @@
+- display: Kafka Test
+
+- kafka.connect:
+  params:
+    server: "myrancher:30190"
+    group: group # optional
+    offset: earliest # optional
+
+- kafka.produce:
+  params:
+    topic: rockers
+    msg: Springsteen Rocks !!
+
+- kafka.produce:
+  params:
+    topic: rockers
+    msg: Bruce too.
+
+- kafka.consume:
+  params:
+    topic: rockers
+    timeout: 60 # optional (seconds)
+
+- display: ${kafka.consume}
+
+- kafka.produce:
+  params:
+    topic: rockers
+    msg: INXS rock
+
+- kafka.produce:
+  params:
+    topic: rockers
+    msg: Dick Rivers does not rock.
+
+- kafka.check:
+  params:
+    topic: rockers
+    timeout: 60 # optional (seconds)
+    expect: Dick Rivers .* rock\.
+
+- display: ${kafka.check}
