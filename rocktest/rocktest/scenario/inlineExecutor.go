@@ -79,7 +79,7 @@ func (x InlineExecutor) Lookup(s string) (string, bool, error) {
 			return s, false, err2
 		}
 
-		ret, found := x.scenario.Context["??"]
+		ret, found := x.scenario.GetContext("??")
 
 		if found {
 			return ret, true, nil

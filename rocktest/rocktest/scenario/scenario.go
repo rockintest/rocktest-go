@@ -21,7 +21,7 @@ type Scenario struct {
 	M     Module
 
 	// Contains the variables
-	Context map[string]string
+	Context []map[string]string
 
 	// Contains the storage for the modules
 	Store map[string]interface{}
@@ -32,13 +32,14 @@ type Scenario struct {
 	// Functions
 	Functions map[string][]interface{}
 
-	Subst *text.StringSubstitutor
-
 	Quoter      ParamQuoter
 	SubstQuoter *text.StringSubstitutor
 
 	Executor      *InlineExecutor
 	SubstExecutor *text.StringSubstitutor
+
+	contextGetter *ContextGetter
+	Subst         *text.StringSubstitutor
 
 	// Caller, when the scenario is called from another one
 	Caller *Scenario
@@ -55,9 +56,10 @@ type Scenario struct {
 
 func NewScenario() *Scenario {
 	ret := new(Scenario)
-	ret.Context = make(map[string]string)
+	ret.Context = append(ret.Context, make(map[string]string))
 	ret.Store = make(map[string]interface{})
-	ret.Subst = text.NewStringSubstitutorByMap(ret.Context)
+	ret.contextGetter = NewContextGetter(ret)
+	ret.Subst = text.NewStringSubstitutorByLookuper(ret.contextGetter)
 	ret.Quoter.Scen = ret
 	ret.SubstQuoter = text.NewStringSubstitutorByLookuper(ret.Quoter)
 	ret.Executor = NewInlineExecutor(ret)
@@ -93,8 +95,27 @@ func humanStr(src interface{}) string {
 	}
 }
 
+func (s *Scenario) pushContext() {
+	s.Context = append(s.Context, make(map[string]string))
+}
+
+func (s *Scenario) popContext() {
+	if len(s.Context) > 1 {
+		s.Context = s.Context[0 : len(s.Context)-1]
+	}
+}
+
+func (s *Scenario) getCurrentContext() map[string]string {
+	return s.Context[len(s.Context)-1]
+}
+
 func (s *Scenario) isBuiltin(name string) bool {
 	return name == "module" || name == "step"
+}
+
+func (s *Scenario) GetModule() string {
+	ret, _ := s.GetContext("module")
+	return ret
 }
 
 func (s *Scenario) RunSteps(steps []interface{}) error {
@@ -104,14 +125,16 @@ func (s *Scenario) RunSteps(steps []interface{}) error {
 	for _, v := range steps {
 		i++
 
-		s.Context["step"] = fmt.Sprint(i)
+		s.PutContext("step", fmt.Sprint(i))
 
 		node := nodeToMap(v)
 		step := NewStep(node, s)
 
+		mod := s.GetModule()
+
 		if !s.Skip && !strings.HasPrefix(step.Type, "--") && step.Type != "Function" {
-			log.Infof("---------- Step %s/%d ----------", s.Context["module"], i)
-			log.Infof("[%s/%d] %s - %s", s.Context["module"], i, strings.ToUpper(step.Type), humanStr(step.Params["value"]))
+			log.Infof("---------- Step %s/%d ----------", mod, i)
+			log.Infof("[%s/%d] %s - %s", mod, i, strings.ToUpper(step.Type), humanStr(step.Params["value"]))
 			if log.IsLevelEnabled(log.DebugLevel) {
 				for name, val := range step.Params {
 					log.Debugf("  %s = %s", name, val)
@@ -146,7 +169,7 @@ func (s *Scenario) RunSteps(steps []interface{}) error {
 
 					yamlMap := make(map[string]interface{})
 					yamlMap["stepNumber"] = i
-					yamlMap["scenario"] = s.Context["module"]
+					yamlMap["scenario"] = s.GetModule()
 					if step.Desc != "" {
 						yamlMap["desc"] = step.Desc
 					}
@@ -213,7 +236,7 @@ func (s *Scenario) RunFromRoot(scen string) error {
 
 	basename := filepath.Base(scen)
 
-	s.Context["module"] = strings.TrimSuffix(basename, filepath.Ext(basename))
+	s.PutContext("module", strings.TrimSuffix(basename, filepath.Ext(basename)))
 
 	err = yaml.Unmarshal(yamlFile, &s.Steps)
 
@@ -241,7 +264,7 @@ func (s *Scenario) Run(scen string) error {
 	abs, _ := filepath.Abs(scen)
 
 	s.Root = filepath.Dir(abs)
-	s.Context["module"] = strings.TrimSuffix(basename, filepath.Ext(basename))
+	s.PutContext("module", strings.TrimSuffix(basename, filepath.Ext(basename)))
 
 	err = yaml.Unmarshal(yamlFile, &s.Steps)
 
@@ -276,21 +299,35 @@ func (s *Scenario) RemoveStore(name string) {
 	delete(s.Store, name)
 }
 
+// Gets a variable from the context stack
+func (s *Scenario) GetContext(name string) (string, bool) {
+	for i := len(s.Context) - 1; i >= 0; i-- {
+		curr := s.Context[i]
+		ret, found := curr[name]
+		if found {
+			return ret, true
+		}
+	}
+	return "", false
+}
+
 // Put a variable in the context
 func (s *Scenario) PutContext(name string, value interface{}) error {
 
+	mod := s.GetModule()
+
 	switch str := value.(type) {
 	case string:
-		s.Context[name] = str
-		log.Debugf("Set %s: %s = %v", s.Context["module"], name, value)
+		s.getCurrentContext()[name] = str
+		log.Debugf("Set %s: %s = %v", mod, name, value)
 	case int:
-		s.Context[name] = fmt.Sprint(str)
-		log.Debugf("Set %s: %s = %v", s.Context["module"], name, value)
+		s.getCurrentContext()[name] = fmt.Sprint(str)
+		log.Debugf("Set %s: %s = %v", mod, name, value)
 	case bool:
-		s.Context[name] = fmt.Sprint(str)
-		log.Debugf("Set %s: %s = %v", s.Context["module"], name, value)
+		s.getCurrentContext()[name] = fmt.Sprint(str)
+		log.Debugf("Set %s: %s = %v", mod, name, value)
 	default:
-		log.Debugf("NotSet %s: %s = %v (type must be string or int, not %T)", s.Context["module"], name, value, value)
+		log.Debugf("NotSet %s: %s = %v (type must be string or int, not %T)", mod, name, value, value)
 		return fmt.Errorf("variable value type must be string or int, not %T", value)
 	}
 
@@ -337,9 +374,9 @@ func (s *Scenario) DeleteContextAs(params map[string]interface{}, defprefix stri
 
 // Removes a variable from the context
 func (s *Scenario) DeleteContext(name string) {
-	_, ok := s.Context[name]
+	_, ok := s.getCurrentContext()[name]
 	if ok {
-		delete(s.Context, name)
+		delete(s.getCurrentContext(), name)
 	}
 }
 
@@ -348,7 +385,7 @@ func (s *Scenario) DeleteContextRegex(regex string) {
 
 	log.Debugf("Remove variables matching %s", regex)
 
-	for k := range s.Context {
+	for k := range s.getCurrentContext() {
 		re, err := regexp.Compile("^" + regex + "$")
 		if err != nil {
 			log.Errorf("Error compiling regex: %s", err.Error())
@@ -356,7 +393,7 @@ func (s *Scenario) DeleteContextRegex(regex string) {
 		}
 		if re.MatchString(k) {
 			log.Tracef("Remove %s variable", k)
-			delete(s.Context, k)
+			delete(s.getCurrentContext(), k)
 		}
 	}
 }
@@ -374,7 +411,7 @@ func (s *Scenario) AddVariables(params map[string]interface{}) error {
 
 func (s *Scenario) CopyVariable(name string, source *Scenario) error {
 
-	val, found := source.Context[name]
+	val, found := source.getCurrentContext()[name]
 	if found {
 		err := s.PutContext(name, val)
 		if err != nil {
@@ -388,7 +425,7 @@ func (s *Scenario) CopyVariable(name string, source *Scenario) error {
 // Add all the variables from params, excluding builtin variables
 func (s *Scenario) CopyVariables(source *Scenario) error {
 
-	for k, v := range source.Context {
+	for k, v := range source.getCurrentContext() {
 
 		if s.isBuiltin(k) {
 			continue

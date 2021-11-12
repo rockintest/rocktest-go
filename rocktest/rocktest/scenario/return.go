@@ -11,7 +11,7 @@ func putCaller(name string, val string, scenario *Scenario) {
 	if strings.HasPrefix(name, ".") {
 		scenario.Caller.PutContext(name[1:], val)
 	} else {
-		scenario.Caller.PutContext(scenario.Context["module"]+"."+name, val)
+		scenario.Caller.PutContext(scenario.GetModule()+"."+name, val)
 	}
 
 }

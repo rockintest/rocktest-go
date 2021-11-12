@@ -113,7 +113,7 @@ func (module *Module) Assert_set(params map[string]interface{}, scenario *Scenar
 		str := fmt.Sprint(v)
 
 		if str != "" {
-			_, found := scenario.Context[str]
+			_, found := scenario.GetContext(str)
 			if !found {
 				return fmt.Errorf("parameter %s is mandatory", str)
 			}

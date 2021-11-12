@@ -1,0 +1,11 @@
+- display: Out of function
+
+- call: ->displayfunc
+
+- display: Out of function
+
+- function: displayfunc
+  steps:
+    - display: In function
+
+

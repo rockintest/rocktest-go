@@ -42,7 +42,9 @@ func (module *Module) Call(params map[string]interface{}, scenario *Scenario) er
 		if !ok {
 			return fmt.Errorf("function %s does not exist", fun)
 		} else {
+			scenario.pushContext()
 			scenario.RunSteps(steps)
+			scenario.popContext()
 		}
 
 	} else {

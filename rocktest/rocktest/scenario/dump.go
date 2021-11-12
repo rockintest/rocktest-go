@@ -6,9 +6,11 @@ import (
 
 func (module *Module) Dump(params map[string]interface{}, scenario *Scenario) error {
 
-	fmt.Printf("Variables for context %s\n", scenario.Context["module"])
+	mod, _ := scenario.GetContext("module")
 
-	for k, v := range scenario.Context {
+	fmt.Printf("Variables for context %s\n", mod)
+
+	for k, v := range scenario.getCurrentContext() {
 		fmt.Printf("  %s = %v\n", k, v)
 	}
 

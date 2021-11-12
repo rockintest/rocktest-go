@@ -1,0 +1,23 @@
+- var:
+  params:
+    name: jsonarray
+    value: >-
+      {
+        "albums" : [
+          {
+            "name" : "inxs",
+            "album" : "Kick"
+          },
+          {
+            "name" : "Pink Floyd",
+            "album" : "The dark side of the moon"
+          }
+        ]
+      }
+
+- json.check:
+  params:
+    json: ${jsonarray}
+    equals:
+      albums[1].name : Pink Floyd
+      albums[0].album : Suicide Blonde
