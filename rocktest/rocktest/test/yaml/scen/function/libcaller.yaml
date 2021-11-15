@@ -1,0 +1,23 @@
+- call: lib->rock
+
+- call: lib->rockParam
+  params:
+    singer: Bruce
+
+- call: lib->rockReturn
+
+- dump:
+
+- assert.equals:
+  params: 
+    expected: guitar
+    actual: ${instrument}
+
+# Complex call, with variables and subfunctions in the module
+- call: lib->complex
+
+- assert.equals:
+  params: 
+    expected: springsteenspringsteen from subComplex
+    actual: ${complex.concat}
+

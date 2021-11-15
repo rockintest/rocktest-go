@@ -1,0 +1,7 @@
+- call: lib->rock
+
+# Should fail. The assert in the function expecte "Bruce"
+
+- call: lib->rockParam
+  params:
+    singer: INXS

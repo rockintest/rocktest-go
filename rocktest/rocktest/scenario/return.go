@@ -8,12 +8,23 @@ import (
 
 func putCaller(name string, val string, scenario *Scenario) {
 
-	if strings.HasPrefix(name, ".") {
-		scenario.Caller.PutContext(name[1:], val)
-	} else {
-		scenario.Caller.PutContext(scenario.GetModule()+"."+name, val)
-	}
+	if scenario.InFunction {
 
+		if strings.HasPrefix(name, ".") {
+			scenario.PutContextCallerFunctio(name[1:], val)
+		} else {
+			scenario.PutContextCallerFunctio(scenario.GetModule()+"."+name, val)
+		}
+
+	} else {
+
+		if strings.HasPrefix(name, ".") {
+			scenario.Caller.PutContext(name[1:], val)
+		} else {
+			scenario.Caller.PutContext(scenario.GetModule()+"."+name, val)
+		}
+
+	}
 }
 
 func (module *Module) Return(params map[string]interface{}, scenario *Scenario) error {

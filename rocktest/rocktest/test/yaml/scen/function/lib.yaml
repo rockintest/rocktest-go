@@ -1,0 +1,36 @@
+- function: rock
+  steps:
+    - display: It rocks !!
+
+- function: rockParam
+  steps:
+    - assert.equals:
+      params:
+        expected: Bruce
+        actual: ${singer}
+
+- function: rockReturn
+  steps:
+    - return: .instrument = guitar
+    - return: music = rock
+
+
+- function: complex
+  steps:
+    - call: ->subComplex
+      params:
+        bruce: springsteen
+
+    - display: ${subComplex.concat}
+
+    - assert.equals:
+      params:
+        expected: springsteenspringsteen
+        actual: ${subComplex.concat}
+
+    - return: concat = ${subComplex.concat} from subComplex
+
+
+- function: subComplex
+  steps:
+    - return: concat = ${bruce}${bruce}

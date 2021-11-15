@@ -1,0 +1,39 @@
+- var: band=Rammstein
+
+- call: ->rock
+  params:
+    singer: Bruce
+
+- display: Out of function
+
+- call: ->rockWithReturn
+
+- dump:
+
+- assert.equals:
+  params:
+    expected: guitar
+    actual: ${instrument}
+
+- assert.equals:
+  params:
+    expected: rock
+    actual: ${rockWithReturn.music}
+
+- function: rock
+  steps:
+    - display: ${singer} rocks !
+    - assert.equals:
+      params:
+        expected: Bruce
+        actual: ${singer}
+    - assert.equals:
+      params:
+        expected: Rammstein
+        actual: ${band}
+
+
+- function: rockWithReturn
+  steps:
+    - return: .instrument = guitar
+    - return: music = rock

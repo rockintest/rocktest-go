@@ -51,6 +51,10 @@ type Scenario struct {
 	// If an error is posted on the channel, the scenario stops
 	ErrorChan chan (error)
 
+	// Indicates if we are in a local function
+	// It impacts the return steps
+	InFunction bool
+
 	Skip bool
 }
 
@@ -68,6 +72,7 @@ func NewScenario() *Scenario {
 	ret.ErrorChan = make(chan error)
 	ret.Cleanup = make(map[string]func(*Scenario) error)
 	ret.Functions = make(map[string][]interface{})
+	ret.InFunction = false
 	return ret
 }
 
@@ -107,6 +112,10 @@ func (s *Scenario) popContext() {
 
 func (s *Scenario) getCurrentContext() map[string]string {
 	return s.Context[len(s.Context)-1]
+}
+
+func (s *Scenario) getCallerContext() map[string]string {
+	return s.Context[len(s.Context)-2]
 }
 
 func (s *Scenario) isBuiltin(name string) bool {
@@ -251,6 +260,35 @@ func (s *Scenario) RunFromRoot(scen string) error {
 
 }
 
+func (s *Scenario) RunFunction(scen string, fun string) error {
+	log.Infof("Run scenario %s", scen)
+
+	yamlFile, err := ioutil.ReadFile(s.Root + "/" + scen)
+	if err != nil {
+		return err
+	}
+
+	s.PutContext("module", fun)
+
+	err = yaml.Unmarshal(yamlFile, &s.Steps)
+
+	if err != nil {
+		return err
+	}
+
+	steps := nodeToList(s.Steps)
+	s.ExtractFunctions(steps)
+
+	stepsFun, ok := s.Functions[fun]
+
+	if !ok {
+		return fmt.Errorf("function %s does not exist in module %s", fun, scen)
+	}
+
+	return s.RunSteps(stepsFun)
+
+}
+
 func (s *Scenario) Run(scen string) error {
 	log.Infof("Run scenario %s", scen)
 
@@ -311,20 +349,19 @@ func (s *Scenario) GetContext(name string) (string, bool) {
 	return "", false
 }
 
-// Put a variable in the context
-func (s *Scenario) PutContext(name string, value interface{}) error {
+func (s *Scenario) localPutContext(name string, ctx map[string]string, value interface{}) error {
 
 	mod := s.GetModule()
 
 	switch str := value.(type) {
 	case string:
-		s.getCurrentContext()[name] = str
+		ctx[name] = str
 		log.Debugf("Set %s: %s = %v", mod, name, value)
 	case int:
-		s.getCurrentContext()[name] = fmt.Sprint(str)
+		ctx[name] = fmt.Sprint(str)
 		log.Debugf("Set %s: %s = %v", mod, name, value)
 	case bool:
-		s.getCurrentContext()[name] = fmt.Sprint(str)
+		ctx[name] = fmt.Sprint(str)
 		log.Debugf("Set %s: %s = %v", mod, name, value)
 	default:
 		log.Debugf("NotSet %s: %s = %v (type must be string or int, not %T)", mod, name, value, value)
@@ -332,6 +369,16 @@ func (s *Scenario) PutContext(name string, value interface{}) error {
 	}
 
 	return nil
+}
+
+// Put a variable in the context of the caller function
+func (s *Scenario) PutContextCallerFunctio(name string, value interface{}) error {
+	return s.localPutContext(name, s.getCallerContext(), value)
+}
+
+// Put a variable in the context
+func (s *Scenario) PutContext(name string, value interface{}) error {
+	return s.localPutContext(name, s.getCurrentContext(), value)
 }
 
 // Put a variable in the context

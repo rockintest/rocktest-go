@@ -1,0 +1,13 @@
+- call: ->rock
+  params:
+    singer: Bruce
+
+- display: Out of function
+
+- function: rock
+  steps:
+    - display: ${singer} rocks !
+    - assert.equals:
+      params:
+        expected: INXS
+        actual: ${singer}
