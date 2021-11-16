@@ -5,3 +5,4 @@
   desc: this is a step
   params:
     message: youpi
+- display: ${HOME}

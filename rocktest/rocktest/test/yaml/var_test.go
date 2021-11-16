@@ -27,3 +27,7 @@ func TestVar5(t *testing.T) {
 func TestExpr1(t *testing.T) {
 	shouldPass(t, "var/varSubstTest.yaml")
 }
+
+func TestEnv(t *testing.T) {
+	shouldPass(t, "var/env.yaml")
+}

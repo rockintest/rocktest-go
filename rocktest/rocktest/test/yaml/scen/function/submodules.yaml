@@ -1,0 +1,53 @@
+# Functions embedded in yaml file
+
+- call: ->whorocks
+  params:
+    message: "Who's rockin' ?"
+
+- display: ${whorocks.ret}
+
+- assert.equals:
+  params:
+    expected: "Who's rockin' ? It's Nirvana"
+    actual: ${whorocks.ret}
+
+- call: ->whorocks
+  params:
+    message: "R U Sure ?"
+
+- display: ${whorocks.ret}
+
+- assert.equals:
+  params:
+    expected: "R U Sure ? It's Nirvana"
+    actual: ${whorocks.ret}
+
+- call: ->subinception
+  params:
+    message: "Inception..."
+
+
+## Functions
+
+- function: whorocks
+  steps :
+  - display: "The function got the message : ${message}"
+  - return: "ret = ${message} It's Nirvana"
+
+# A function calling another function
+
+- function: inception
+  steps:
+  - call: ->whorocks
+    params:
+      message: ${message}
+  - return: ret = ${whorocks.ret}
+
+# 3 levels imbrication
+
+- function: subinception
+  steps:
+    - call: ->inception
+      params:
+        message: ${message}
+    - return: ret = ${inception.ret}
