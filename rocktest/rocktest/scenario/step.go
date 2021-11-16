@@ -80,7 +80,7 @@ func (s *Step) Exec() error {
 
 	log.Tracef("STEP: %s", s.ToString())
 	if s.Desc != "" {
-		log.Infof("%s", s.Desc)
+		fmt.Printf(">> %s\n", s.Desc)
 	}
 
 	return s.scenario.Exec(s.Type, s.Params)

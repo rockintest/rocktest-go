@@ -9,6 +9,7 @@ require (
 	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
+	github.com/google/uuid v1.3.0
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/kr/pretty v0.1.0 // indirect

@@ -35,3 +35,7 @@ func TestFunctionNoExistRemote(t *testing.T) {
 func TestModuleNoExist(t *testing.T) {
 	shouldFail(t, "function/noExistModule.yaml")
 }
+
+func TestFunction4(t *testing.T) {
+	shouldPass(t, "function/submodules.yaml")
+}

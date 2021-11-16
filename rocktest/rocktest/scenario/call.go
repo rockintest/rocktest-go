@@ -44,6 +44,7 @@ func (module *Module) Call(params map[string]interface{}, scenario *Scenario) er
 				return fmt.Errorf("function %s does not exist", fun)
 			} else {
 
+				inFunctionBefore := scenario.InFunction
 				scenario.InFunction = true
 				scenario.pushContext()
 
@@ -55,7 +56,7 @@ func (module *Module) Call(params map[string]interface{}, scenario *Scenario) er
 					return err
 				}
 				scenario.popContext()
-				scenario.InFunction = false
+				scenario.InFunction = inFunctionBefore
 
 			}
 		} else {

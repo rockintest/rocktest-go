@@ -12,7 +12,7 @@ func (module *Module) Display(params map[string]interface{}, scenario *Scenario)
 	}
 
 	val, _ := scenario.GetString(paramsEx, "value", "")
-	fmt.Printf(">> %s\n", val)
+	fmt.Printf("%s\n", val)
 
 	return nil
 }
