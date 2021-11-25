@@ -459,7 +459,7 @@ func (module *Module) httpReq(params map[string]interface{}, meth string, scenar
 		return err
 	}
 
-	headers, err := scenario.GetMap(params, "headers", nil)
+	headers, err := scenario.GetMap(paramsEx, "headers", nil)
 
 	if err == nil {
 		for k, v := range headers {
