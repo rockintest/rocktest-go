@@ -22,7 +22,7 @@ jobs:
       run: echo REF=${GITHUB_REF##*/}
 
     - name: release
-      uses: wangyoucao577/go-release-action@v1.20
+      uses: wangyoucao577/go-release-action@v1.22
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: linux
